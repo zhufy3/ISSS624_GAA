@@ -9,8 +9,7 @@ In this chapter, we will learn what is spatial autocorrelation, Localised Geospa
 
 ## 1. What is Spatial Autocorrelation
 
--   Tobler's First Law of Geolgraphy:
-    Everything is related to everything else,\
+-   Tobler's First Law of Geolgraphy: Everything is related to everything else,\
     but near things are more related than distant things
 
 -   Spatial Dependence
@@ -25,15 +24,13 @@ In this chapter, we will learn what is spatial autocorrelation, Localised Geospa
 
     ## 2. Objective for The Case Study
 
-    The objective in this study is to apply appropriate spatial
-    statistical methods to discover if development are even distributed
-    geographically.
+    The objective in this study is to apply appropriate spatial statistical methods to discover if development are even distributed geographically.
 
     ## 3. Study Area and Data
 
 -   Hunan province administrative boundary layer at county level. This is a geospatial data set in ESRI shapefile format.
 
-Hunan_2012.csv: This csv file contains selected Hunan\'s local development indicators in 2012.
+Hunan_2012.csv: This csv file contains selected Hunan's local development indicators in 2012.
 
 ## 2. Analytical tools
 
@@ -78,9 +75,7 @@ hunan <- left_join(hunan,hunan2012)
 
 ## 4. Visualizing Development Indicator
 
-We plot a base map and chropleth map based on GDPCC of the province by using qtm() of **tamp.**
-The "equal" style divides the range of the variable into n parts.
-The "quantile" style provides quantile breaks.
+We plot a base map and chropleth map based on GDPCC of the province by using qtm() of **tamp.** The "equal" style divides the range of the variable into n parts. The "quantile" style provides quantile breaks.
 
 ```{r}
 equal <- tm_shape(hunan) +
@@ -106,6 +101,7 @@ tmap_arrange(equal,
 ## 5. Autocorrelation
 
 ### 
+
 5.1 Computing Queen contiguity weight matrix
 
 ```{r}
@@ -116,7 +112,7 @@ summary(wm_q)
 
 ### 5.2 Row-standardised weights matrix
 
-Neighboring polygon will be assigned equal weight (style=\"W\")
+Neighboring polygon will be assigned equal weight (style="W")
 
 ```{r}
 rswm_q <- nb2listw(wm_q, 
@@ -173,7 +169,7 @@ abline(v=0,
        col="red") 
 ```
 
-### 5.4 Global Spatial Autocorrelation: Geary's 
+### 5.4 Global Spatial Autocorrelation: Geary's
 
 #### 5.4.1 Geary's C Test
 
@@ -246,7 +242,7 @@ print(GC_corr)
 
 #### 7.1 Computing Local Moran's I
 
-The code chunks below are used to compute local Moran\'s I of *GDPPC2012* at the county level.
+The code chunks below are used to compute local Moran's I of *GDPPC2012* at the county level.
 
 ```{r}
 fips <- order(hunan$County)
@@ -317,7 +313,7 @@ nci <- moran.plot(hunan$GDPPC, rswm_q,
                   ylab="Spatially Lag GDPPC 2012")
 ```
 
-#### 8.2  Plotting Moran scatterplot with standardised variable
+#### 8.2 Plotting Moran scatterplot with standardised variable
 
 ```{r}
 hunan$Z.GDPPC <- scale(hunan$GDPPC) %>% as.vector 
@@ -373,9 +369,7 @@ tm_shape(hunan.localMI) +
   tm_borders(alpha=0.5)
 ```
 
-For effective interpretation, it is better to plot both the local
-Moran\'s I values map and its corresponding p-values map next to each
-other.
+For effective interpretation, it is better to plot both the local Moran's I values map and its corresponding p-values map next to each other.
 
 ```{r}
 gdppc <- qtm(hunan, "GDPPC")
@@ -403,5 +397,3 @@ tmap_arrange(gdppc, LISAmap, asp=1, ncol=2)
 ##### 9.1.1 Deriving the centroid
 
 ## References
-
-
