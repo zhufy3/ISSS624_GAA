@@ -101,10 +101,7 @@ summary(wm_r)
 
 ### 3.3 Visualising contiguity weights
 
-To get our longitude values we map the st_centroid function over the
-geometry column of us.bound and access the longitude value through
-double bracket notation \[\[\]\] and 1. This allows us to get only the
-longitude, which is the first value in each centroid.
+To get our longitude values we map the st_centroid function over the geometry column of us.bound and access the longitude value through double bracket notation \[\[\]\] and 1. This allows us to get only the longitude, which is the first value in each centroid.
 
 ```{r}
 longitude <- map_dbl(hunan$geometry, ~st_centroid(.x)[[1]])
@@ -172,7 +169,7 @@ wm_d62
 str(wm_d62)
 ```
 
-#### 3.4.3  Determine the cut-off distance
+#### 3.4.3 Determine the cut-off distance
 
 1.  Return a matrix with the indices of points belonging to the set of the k nearest neighbours of each other by using [*knearneigh()*](https://r-spatial.github.io/spdep/reference/knearneigh.html) of **spdep**.
 
@@ -189,7 +186,7 @@ k1dists <- unlist(nbdists(k1, coords, longlat = TRUE))
 summary(k1dists)
 ```
 
-#### 3.4.4  Computing fixed distance weight matrix
+#### 3.4.4 Computing fixed distance weight matrix
 
 We can compute the distance weight matrix by using *dnearneigh().*
 
@@ -213,8 +210,7 @@ plot(wm_d62, coords, add=TRUE)
 plot(k1, coords, add=TRUE, col="red", length=0.08)
 ```
 
-The red lines show the links of 1st nearest neighbours and the black
-lines show the links of neighbours within the cut-off distance of 62km. Alternatively, we can plot both of them next to each other by using the code chunk below.
+The red lines show the links of 1st nearest neighbours and the black lines show the links of neighbours within the cut-off distance of 62km. Alternatively, we can plot both of them next to each other by using the code chunk below.
 
 ```{r}
 par(mfrow=c(1,2))
@@ -242,6 +238,7 @@ plot(knn6, coords, pch = 19, cex = 0.6, add = TRUE, col = "red")
 ```
 
 ### 
+
 3.6 Weights based on IDW
 
 IDW=Inversed Distance method. We will compute the distances between areas by using [*nbdists()*](https://r-spatial.github.io/spdep/reference/nbdists.html) of **spdep**.
@@ -259,7 +256,7 @@ rswm_q <- nb2listw(wm_q, style="W", zero.policy = TRUE)
 rswm_q
 ```
 
-To see the weight of the first polygon\'s four neighbors type:
+To see the weight of the first polygon's four neighbors type:
 
 ```{r}
 rswm_q$weights[1]
@@ -313,9 +310,7 @@ tmap_arrange(gdppc, lag_gdppc, asp=1, ncol=2)
 
 #### 3.7.2 Spatial lag as a sum of neighboring values
 
-We go back to our neighbors list, then apply a function that will assign
-binary weights, then we use glist = in the nb2listw function to
-explicitly assign these weights. We start by applying a function that will assign a value of 1 per each neighbor. This is done with lapply.
+We go back to our neighbors list, then apply a function that will assign binary weights, then we use glist = in the nb2listw function to explicitly assign these weights. We start by applying a function that will assign a value of 1 per each neighbor. This is done with lapply.
 
 ```{r}
 b_weights <- lapply(wm_q, function(x) 0*x + 1)
@@ -350,11 +345,7 @@ tmap_arrange(gdppc, lag_sum_gdppc, asp=1, ncol=2)
 
 #### 3.7.3 Spatial window average
 
-The spatial window average uses row-standardized weights and includes
-the diagonal element. To do this in R, we need to go back to the
-neighbors structure and add the diagonal element before assigning
-weights. To begin we assign k6 to a new variable because we will
-directly alter its structure to add the diagonal elements.
+The spatial window average uses row-standardized weights and includes the diagonal element. To do this in R, we need to go back to the neighbors structure and add the diagonal element before assigning weights. To begin we assign k6 to a new variable because we will directly alter its structure to add the diagonal elements.
 
 ```{r}
 wm_q1 <- wm_q
@@ -403,7 +394,7 @@ w_avg_gdppc <- qtm(hunan, "lag_window_avg GDPPC")
 tmap_arrange(gdppc, w_avg_gdppc, asp=1, ncol=2)
 ```
 
-#### 3.7.4  Spatial window sum
+#### 3.7.4 Spatial window sum
 
 To do this we assign binary weights to the neighbor structure that includes the diagonal element
 
