@@ -4,6 +4,12 @@ title: "ISSS624"
 
 # Welcome to Geospacial Analytics Application!
 
+[Case Study Sources](https://r4gdsa.netlify.app/)
+
+[ISSS624 Geospatial Applied Analytics](https://isss624-ay2022-23nov.netlify.app/take-home_ex01)
+
+[R4DSA](https://r4dsa.netlify.app/)
+
 ## Overview
 
 Getting Started!
