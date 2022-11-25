@@ -1,0 +1,28 @@
+project:
+  type: website
+
+website:
+  title: "ISSS624_GAA"
+  navbar:
+    left: 
+      - text: Hands-on Exercises
+        menu: 
+          - text: Hands-on Exercise 1
+            href: Hands_on_Ex1.qmd
+      - text: Inclass Exercises
+        menu: 
+          - text: Inclass Exercise 1
+            href: Inclass_Ex1.qmd
+    right:
+      - href: index.qmd
+        text: Home
+      - about.qmd
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: true
+
+editor: visual
+
