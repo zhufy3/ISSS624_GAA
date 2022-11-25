@@ -1,9 +1,0 @@
----
-title: "ISSS624_AGA"
----
-
-# Welcome to AGA!
-
-## Overview
-
-Let's get started to study!
