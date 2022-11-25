@@ -12,7 +12,7 @@ website:
       - text: Inclass Exercises
         menu: 
           - text: Inclass Exercise 1
-            href: Inclass_Ex1.qmd
+            href: Inclass_Ex1/Inclass_Ex1.qmd
     right:
       - href: index.qmd
         text: Home
