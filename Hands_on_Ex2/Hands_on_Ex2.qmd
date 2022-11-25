@@ -401,3 +401,7 @@ tmap_arrange(gdppc, LISAmap, asp=1, ncol=2)
 #### 9.1 Deriving distance-based weight matrix
 
 ##### 9.1.1 Deriving the centroid
+
+## References
+
+
