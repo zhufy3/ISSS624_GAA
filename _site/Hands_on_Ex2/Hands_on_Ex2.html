@@ -253,7 +253,7 @@ but near things are more related than distant things</p></li>
 <h2 id="study-area-and-data" class="anchored">3. Study Area and Data</h2></li>
 <li><p>Hunan province administrative boundary layer at county level. This is a geospatial data set in ESRI shapefile format.</p></li>
 </ul>
-<p>Hunan_2012.csv: This csv file contains selected Hunan's local development indicators in 2012.</p>
+<p>Hunan_2012.csv: This csv file contains selected Hunan’s local development indicators in 2012.</p>
 </section>
 <section id="analytical-tools" class="level2">
 <h2 class="anchored" data-anchor-id="analytical-tools">2. Analytical tools</h2>
@@ -369,7 +369,7 @@ Link number distribution:
 </section>
 <section id="row-standardised-weights-matrix" class="level3">
 <h3 class="anchored" data-anchor-id="row-standardised-weights-matrix">5.2 Row-standardised weights matrix</h3>
-<p>Neighboring polygon will be assigned equal weight (style="W")</p>
+<p>Neighboring polygon will be assigned equal weight (style=“W”)</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>rswm_q <span class="ot">&lt;-</span> <span class="fu">nb2listw</span>(wm_q, </span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>                   <span class="at">style=</span><span class="st">"W"</span>, </span>
@@ -613,7 +613,7 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <h3 class="anchored" data-anchor-id="clusters-and-outlier-analysis">7. Clusters and Outlier Analysis</h3>
 <section id="computing-local-morans-i" class="level4">
 <h4 class="anchored" data-anchor-id="computing-local-morans-i">7.1 Computing Local Moran’s I</h4>
-<p>The code chunks below are used to compute local Moran's I of <em>GDPPC2012</em> at the county level.</p>
+<p>The code chunks below are used to compute local Moran’s I of <em>GDPPC2012</em> at the county level.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>fips <span class="ot">&lt;-</span> <span class="fu">order</span>(hunan<span class="sc">$</span>County)</span>
 <span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>localMI <span class="ot">&lt;-</span> <span class="fu">localmoran</span>(hunan<span class="sc">$</span>GDPPC, rswm_q)</span>
@@ -856,7 +856,7 @@ Zixing        -7.6849e-01 -8.8210e-02  9.4057e-01 -7.0144e-01         0.4830</co
 <p><img src="Hands_on_Ex2_files/figure-html/unnamed-chunk-36-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<p>For effective interpretation, it is better to plot both the local Moran's I values map and its corresponding p-values map next to each other.</p>
+<p>For effective interpretation, it is better to plot both the local Moran’s I values map and its corresponding p-values map next to each other.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a>gdppc <span class="ot">&lt;-</span> <span class="fu">qtm</span>(hunan, <span class="st">"GDPPC"</span>)</span>
 <span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a></span>
