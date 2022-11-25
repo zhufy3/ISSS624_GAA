@@ -1,0 +1,26 @@
+---
+title: "Hands-on Ex2"
+editor: visual
+---
+
+# Overview
+
+In this chapter, we will learn what is spatial autocorrelation, Localised Geospatial Analysis, Cluster and Outlier Analysis, and Hot Spot and Cold Spot Areas Analysis.
+
+## 1. What is Spatial Autocorrelation
+
+-   Tobler's First Law of Geolgraphy:
+    Everything is related to everything else,\
+    but near things are more related than distant things
+
+-   Spatial Dependence
+
+    Spatial relationship of variable values.
+
+-   Spatial Autocorrelation
+
+    Measured as spatial dependence in a correlation of random variables. Positive Autocorrelation; Negative Autocorrelation.
+
+-   Detecting Spatial Clusters and Outliers: Moran's I; Geary's c; z-score & p-value.
+
+    # 2. 
