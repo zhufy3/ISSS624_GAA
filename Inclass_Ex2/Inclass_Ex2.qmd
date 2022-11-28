@@ -1,0 +1,82 @@
+---
+title: "Inclass Ex2"
+editor: visual
+---
+
+# Detection of clusters and outliers of Nigeria's water point
+
+## Overview
+
+## Preparation
+
+### 1.1 Packages will be used
+
+-   sf
+
+-   tidyverse
+
+-   tamp
+
+-   spdep
+
+-   funModeling
+
+    ```{r}
+    pacman::p_load(sf,tidyverse,tmap,spdep,funModeling)
+    ```
+
+### 1.2 Importing water point data
+
+In this exercise, we will use two type of geospatial data. One is the boundary data of the Nigeria, one is the water point data.
+
+```{r}
+wp <- st_read(dsn = "geodata",
+              layer = "geo_export",
+              crs = 4326) %>%
+  filter(clean_coun == "Nigeria")
+```
+
+Then, we save the the extracted data into the folder geodata.
+
+```{r}
+write_rds(wp,"geodata/wp_nga.rds")
+```
+
+### 1.3 Importing boundary data
+
+```{r}
+nga <- st_read(dsn = "geodata",
+               layer = "geoBoundaries-NGA-ADM2",
+               crs = 4326)
+```
+
+## 2. Data wrangling
+
+### 2.1 Tackling with missing values
+
+The raw data has missing values, so we should recode NA values in *status_cle* field into *Unknown* by using code chunk below.
+
+```{r}
+wp_nga <- read_rds("geodata/wp_nga.rds") %>%
+  mutate(status_cle = replace_na(status_cle, "Unknown"))
+```
+
+### 2.2 Extracting water point values
+
+We use EDA method to get the distribution of *status_cle field.*
+
+```{r}
+freq(data=wp_nga, 
+     input = 'status_cle')
+```
+
+We use *filter()* to select functional classes in *status_cle* filed.
+
+```{r}
+wpt_functional <- wp_nga %>%
+  filter(status_cle %in%
+           c("Functional", 
+             "Functional but not in use",
+             "Functional but needs repair"))
+write_rds(wpt_functional,"geodata/wpt_functional.rds")
+```

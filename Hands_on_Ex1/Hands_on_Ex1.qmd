@@ -9,13 +9,7 @@ editor: visual
 These are packages needed in this chapter.
 
 ```{r}
-library(tidyverse)
-library(tidyr)
-library(readr)
-library(readxl)
-library(sf)
-library(dplyr)
-library(ggplot2)
+pacman::p_load(tidyverse,tidyr,readr,readx1,sf,dplyr,ggplot2)
 ```
 
 ```{r}
