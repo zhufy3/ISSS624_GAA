@@ -348,15 +348,40 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <h2 class="anchored" data-anchor-id="visualizing-the-spatial-distribution-of-water-points">3. Visualizing the spatial distribution of water points</h2>
 <p>With the numbers of water points in the polygons to fill the map, we use <em>qtm</em> to draw the spatial distribution to show the degree of sparseness.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>nga_wp <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"geodata/nga_wp.rds"</span>)</span>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>nga_wp<span class="ot">&lt;-</span><span class="fu">read_rds</span>(<span class="st">"geodata/nga_wp.rds"</span>)</span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>total <span class="ot">&lt;-</span> <span class="fu">qtm</span>(nga_wp, <span class="st">"total wpt"</span>)</span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>wp_functional <span class="ot">&lt;-</span> <span class="fu">qtm</span>(nga_wp, <span class="st">"wpt functional"</span>)</span>
 <span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>wp_nonfunctional <span class="ot">&lt;-</span> <span class="fu">qtm</span>(nga_wp, <span class="st">"wpt non-functional"</span>)</span>
 <span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>unknown <span class="ot">&lt;-</span> <span class="fu">qtm</span>(nga_wp, <span class="st">"wpt unknown"</span>)</span>
 <span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_arrange</span>(total, wp_functional, wp_nonfunctional, unknown, <span class="at">asp=</span><span class="dv">1</span>, <span class="at">ncol=</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_layout</span>(<span class="at">legend.width=</span><span class="fl">0.47</span>,<span class="at">legend.height =</span> <span class="fl">0.5</span>,<span class="at">legend.position =</span> <span class="fu">c</span>(<span class="st">"right"</span>,<span class="st">"bottom"</span>),<span class="at">legend.hist.height =</span><span class="fl">0.2</span>,<span class="at">legend.hist.width =</span> <span class="fl">0.05</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$tm_layout
+$tm_layout$legend.position
+[1] "right"  "bottom"
+
+$tm_layout$legend.width
+[1] 0.47
+
+$tm_layout$legend.height
+[1] 0.5
+
+$tm_layout$legend.hist.height
+[1] 0.2
+
+$tm_layout$legend.hist.width
+[1] 0.05
+
+$tm_layout$style
+[1] NA
+
+
+attr(,"class")
+[1] "tm"</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_arrange</span>(total, wp_functional, wp_nonfunctional, unknown, <span class="at">asp=</span><span class="dv">1</span>, <span class="at">ncol=</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="Inclass_Ex2_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid" width="672"></p>
+<p><img src="Inclass_Ex2_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid" width="1344"></p>
 </div>
 </div>
 
