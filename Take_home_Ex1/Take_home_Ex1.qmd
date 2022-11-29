@@ -1,0 +1,45 @@
+---
+title: "Take-home Ex1"
+editor: visual
+---
+
+```{r eval=FALSE}
+pacman::p_load(sf,tidyverse,tmap,readr,readx1)
+wp_nga<-read_csv("geodata/wt.csv")
+```
+
+```{r eval=FALSE}
+wp <- st_read(dsn = "geodata",
+              layer = "geo_export",
+              crs = 4326) %>%
+  filter(clean_coun == "Nigeria")
+```
+
+```{r eval=FALSE}
+write_rds(wp,"geodata/wp_nga.rds")
+```
+
+```{r eval=FALSE}
+nga <- st_read(dsn = "geodata",
+               layer = "geoBoundaries-NGA-ADM2",
+               crs = 4326)
+```
+
+```{r eval=FALSE}
+wp_nga <- read_rds("geodata/wp_nga.rds") %>%
+  mutate(status_cle = replace_na(status_cle, "Unknown"))
+```
+
+```{r eval=FALSE}
+freq(data=wp_nga, 
+     input = 'status_cle')
+```
+
+```{r eval=FALSE}
+wpt_functional <- wp_nga %>%
+  filter(status_cle %in%
+           c("Functional", 
+             "Functional but not in use",
+             "Functional but needs repair"))
+write_rds(wpt_functional,"geodata/wpt_functional.rds")
+```

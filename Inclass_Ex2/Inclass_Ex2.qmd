@@ -1,5 +1,10 @@
 ---
-title: "Inclass Ex2"
+title: "Inclass Exercise 2"
+author: Fangyuan ZHU
+execute: 
+  warning: false
+  message: false
+format: html
 editor: visual
 ---
 
@@ -29,7 +34,7 @@ editor: visual
 
 In this exercise, we will use two type of geospatial data. One is the boundary data of the Nigeria, one is the water point data.
 
-```{r}
+```{r eval=FALSE}
 wp <- st_read(dsn = "geodata",
               layer = "geo_export",
               crs = 4326) %>%
@@ -38,13 +43,13 @@ wp <- st_read(dsn = "geodata",
 
 Then, we save the the extracted data into the folder geodata.
 
-```{r}
+```{r eval=FALSE}
 write_rds(wp,"geodata/wp_nga.rds")
 ```
 
 ### 1.3 Importing boundary data
 
-```{r}
+```{r eval=FALSE}
 nga <- st_read(dsn = "geodata",
                layer = "geoBoundaries-NGA-ADM2",
                crs = 4326)
@@ -56,27 +61,102 @@ nga <- st_read(dsn = "geodata",
 
 The raw data has missing values, so we should recode NA values in *status_cle* field into *Unknown* by using code chunk below.
 
-```{r}
+```{r eval=FALSE}
 wp_nga <- read_rds("geodata/wp_nga.rds") %>%
   mutate(status_cle = replace_na(status_cle, "Unknown"))
 ```
 
-### 2.2 Extracting water point values
+### 2.2 Extracting functional water points
 
 We use EDA method to get the distribution of *status_cle field.*
 
-```{r}
+```{r eval=FALSE}
 freq(data=wp_nga, 
      input = 'status_cle')
 ```
 
-We use *filter()* to select functional classes in *status_cle* filed.
+We use *filter()* to select *Functional, Functional but not in use, Functional but needs repair* in *status_cl*e field.
 
-```{r}
+```{r eval=FALSE}
 wpt_functional <- wp_nga %>%
   filter(status_cle %in%
            c("Functional", 
              "Functional but not in use",
              "Functional but needs repair"))
-write_rds(wpt_functional,"geodata/wpt_functional.rds")
+write_rds(wpt_functional,"geodata/wpt_functional")
+```
+
+Then we check the distribution of the filtered data.
+
+```{r eval=FALSE}
+freq(data=wpt_functional, 
+     input = 'status_cle')
+```
+
+### 2.3 Extracting non-functional water point
+
+We use *filter()* in *dplyr* package to select non-functional water point.
+
+```{r eval=FALSE}
+wpt_nonfunctional <- wp_nga %>%
+  filter(status_cle %in%
+           c("Abandoned/Decommissioned", 
+             "Abandoned",
+             "Non-Functional",
+             "Non functional due to dry season",
+             "Non-Functional due to dry season"))
+write_rds(wpt_nonfunctional,"geodata/wpt_nonfunctional.rds")
+```
+
+### 2.4 Extracting water point with unknown class
+
+We select data of water point with unknown class.
+
+```{r eval=FALSE}
+wpt_unknown <- wp_nga %>%
+  filter(status_cle == "Unknown")
+```
+
+### 2.5 Count of point-in-polygon
+
+We use *st_intersects* count how many points in different classes intersect with polygons, and merge the number into the original table *nga.*
+
+```{r eval=FALSE}
+nga_wp <- nga %>% 
+  mutate(`total wpt` = lengths(
+    st_intersects(nga, wp_nga))) %>%
+  mutate(`wpt functional` = lengths(
+    st_intersects(nga, wpt_functional))) %>%
+  mutate(`wpt non-functional` = lengths(
+    st_intersects(nga, wpt_nonfunctional))) %>%
+  mutate(`wpt unknown` = lengths(
+    st_intersects(nga, wpt_unknown)))
+```
+
+Saving the analytical data base.
+
+```{r eval=FALSE}
+nga <- nga_wp %>%
+  mutate(pct_functional = `wpt functional`/`total wpt`) %>%
+  mutate(`pct_non-functional` = `wpt non-functional`/`total wpt`)
+```
+
+Now we save the data table into *rds* format with the chunk below. And delete other raw data.
+
+```{r eval=FALSE}
+write_rds(nga_wp, "geodata/nga_wp.rds")
+```
+
+## 3. Visualizing the spatial distribution of water points
+
+With the numbers of water points in the polygons to fill the map, we use *qtm* to draw the spatial distribution to show the degree of sparseness.
+
+```{r}
+nga_wp <- read_rds("geodata/nga_wp.rds")
+total <- qtm(nga_wp, "total wpt")
+wp_functional <- qtm(nga_wp, "wpt functional")
+wp_nonfunctional <- qtm(nga_wp, "wpt non-functional")
+unknown <- qtm(nga_wp, "wpt unknown")
+
+tmap_arrange(total, wp_functional, wp_nonfunctional, unknown, asp=1, ncol=2)
 ```
