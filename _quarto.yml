@@ -3,7 +3,7 @@ project:
   type: website
 
 website:
-  title: "ISSS624_GAA"
+  title: "ISSS624GAA"
   navbar:
     left: 
       - text: Hands-on Exercises
