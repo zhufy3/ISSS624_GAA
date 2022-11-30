@@ -302,12 +302,14 @@ tmap_arrange(equal,
              ncol=2)
 ```
 
-#### 5.2 Global Spatial Autocorrelation
+### 6 Global Spatial Autocorrelation
 
 Before we can compute the global spatial autocorrelation statistics,
 we need to construct a spatial weights of the study area. Because we have had a quick look that the study area has no isolate districts from the geometry map, there's no reason to drop Contiguity Spatial Weights or Distance Spatial Weights. So we can use both method and compare the results at last.
 
-##### 5.2.1 Computing (QUEEN) contiguity based neighbours
+#### 6.1 Computing Contiguity Based Neighbours
+
+##### 6.1.1Computing (QUEEN) contiguity based neighbours
 
 The code chunk below is to compute neigbours using Queen's Case.
 
@@ -320,6 +322,12 @@ The summary report above shows that there are 774 area units in Nigeria.
 The most connected area unit 508 has 14 neighbours. There are two area
 units with only one heighbours.
 
+Let us see the complete nearest neighbors of each polygon by using *str()* as shown below.
+
+```{r}
+str(wm_q)
+```
+
 For each polygon in our polygon object, *wm_q* lists all neighboring polygons. We can check the detail of the number 508 polygon:
 
 ```{r}
@@ -329,5 +337,129 @@ wm_q[[508]]
 The ID of the number 508 district can be check by below code chunk.
 
 ```{r}
-nga_wp$shapeName[1]
+nga_wp$shapeName[508]
 ```
+
+The output reveals that Polygon ID=508 is Mokwa.
+
+We can retrieve the percentage of non-functional water points of this district 's neighbours by using the code chunk below.
+
+```{r}
+nb1 <- wm_q[[508]]
+nb1 <- nga_wp$`pct_non-functional`[nb1]
+nb1
+```
+
+The printed output above shows that the pct_nonfunctional of the 14 nearest neighbours based on Queen\'s method are 0.053763, 0.8755187and
+so on.
+
+##### 6.1.2 Computing (ROOK) contiguity based neighbours
+
+The code chunk below is to compute neigbours using Queen's Case.
+
+```{r}
+wm_r <- poly2nb(nga_wp, queen=FALSE)
+summary(wm_r)
+```
+
+The summary report above shows the most connected area unit 508 has 14 neighbours. There are two area units with only one heighbours.
+
+Let us see the complete nearest neighbors of each polygon by using *str()* as shown below.
+
+```{r}
+str(wm_r)
+```
+
+##### 6.1.3 Visualizing Contiguity Weights
+
+A connectivity graph takes a point and displays a line to each
+neighboring point. We are working with polygons, so we
+will need to get centroid point in order to make our connectivity graphs. To get our longitude values we map the *st_centroid* function over the
+geometry column and access the longitude value through
+double bracket notation \[\[\]\] and 1.
+
+```{r}
+longitude <- map_dbl(nga_wp$geometry, ~st_centroid(.x)[[1]])
+```
+
+We do the same for latitude with one key difference. We access the second value per each centroid with \[\[2\]\].
+
+```{r}
+latitude <- map_dbl(nga_wp$geometry, ~st_centroid(.x)[[2]])
+```
+
+Now that we have latitude and longitude, we use cbind to put longitude and latitude into the same object.
+
+```{r}
+coords <- cbind(longitude, latitude)
+```
+
+We check the first few observations to see if things are formatted correctly.
+
+```{r}
+head(coords)
+```
+
+Now we can plot the Queen Contiguity based on neighbor map.
+
+```{r}
+par(mfrow=c(1,2))
+plot(nga_wp$geometry, border="lightgrey")
+plot(wm_q, coords, pch = 19, cex = 0.6, add = TRUE, col= "red", main="Queen Contiguity")
+plot(nga_wp$geometry, border="lightgrey")
+plot(wm_r, coords, pch = 19, cex = 0.6, add = TRUE, col = "red", main="Rook Contiguity")
+```
+
+#### 6.2 Computing Distance Based Neighbours
+
+Next, we need to assign weights to each neighboring polygon. In our
+case, each neighboring polygon will be assigned equal weight
+(style=\"B\"), where "B" means basic binary matrix. This is accomplished by assigning the fraction 1/(#ofneighbors) to each neighboring county then summing the weighted income values. The *zero policy* is set to TRUE, weights vectors of zero length are inserted for regions without neighbour in the neighbours list.
+
+```{r}
+rswm_q <- nb2listw(wm_q, 
+                   style="W", 
+                   zero.policy = TRUE)
+print(rswm_q,  zero.policy = TRUE)
+```
+
+#### 6.3 Global Spatial Autocorrelation Test
+
+The Null Hypothesis for Spatial Randomness:
+
+-   Observed spatial pattern of values is equally likely as any other spatial pattern.
+
+-   Values at one location do not depend on values at other (neighbouring) locations.
+
+-   Under spatial randomness, the location of values may be altered without affecting the information content of the data.
+
+    We mainly have two methods to test the teospatial global autocorrelation.
+
+-   Moran's I Test
+
+-   Geary's C Test
+
+##### 6.3.1 Moran's I Test
+
+The code chunk below performs Moran\'s I statistical testing using [*moran.test()*](https://r-spatial.github.io/spdep/reference/moran.test.html) of **spdep**.
+
+```{r}
+moran.test(nga_wp$`pct_non-functional`, 
+           listw=rswm_q, 
+           zero.policy = TRUE, 
+           na.action=na.omit)
+```
+
+From the summary of the test result, we can see that the **p-value** is less than **0.05**, which means we have evident reasons to reject the Null Hypothesis that the percentage of Non-Functional water point is randomly distributed across the country.
+
+##### 6.3.2 Computing Monte Carlo Moran\'s I
+
+We already get the result of the Moran's I Test, but we can confirm the test by simulating Monte Carlo.
+
+```{r}
+
+```
+
+Now we should analyse the exact pattern for the Non-Functional water point.
+
+##### 
