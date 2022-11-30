@@ -136,7 +136,7 @@ nga_wp <- nga %>%
 Saving the analytical data base.
 
 ```{r eval=FALSE}
-nga <- nga_wp %>%
+nga_wp <- nga_wp %>%
   mutate(pct_functional = `wpt functional`/`total wpt`) %>%
   mutate(`pct_non-functional` = `wpt non-functional`/`total wpt`)
 ```

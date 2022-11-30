@@ -1,45 +1,333 @@
 ---
-title: "Take-home Ex1"
+title: "Inclass Exercise 2"
+author: Fangyuan ZHU
+execute: 
+  warning: false
+  message: false
+format: html
 editor: visual
 ---
 
-```{r eval=FALSE}
-pacman::p_load(sf,tidyverse,tmap,readr,readx1)
-wp_nga<-read_csv("geodata/wt.csv")
-```
+# Geospatial Analysis for water points in Nigeria
+
+## Background of the analysis
+
+Water is the source of life on the Earth. Clean and accessible water is particularly critical for human life. Yet over 40% of the global population does not have access to sufficient clean water. Scarcity of water supply is a intractable problem to be solved in the world.
+
+## Objectives
+
+The main aim of this project is to use water point related data
+from rural areas at the water point or small water scheme level and
+share the data via WPdx Data Repository. In order to address this complex problem, we focus on **Nigeria** as a study case and analyse the spatial distribution attributes of ***Not Functional Water Point*** in this project.
+
+## 1. Data used
+
+The data used in this project consists of two types:
+
+-   aspatial data from [WPdx Global Data Repositories](https://www.waterpointdata.org/access-data/)
+
+-   geospatial data of Nigeria Level-2 Administrative Boundary (also known as Local Government Area) polygon features GIS data.
+
+## 2. Packages used
+
+In this project, packages below are used to facilitate our analysis.
+
+-   sf
+
+-   tidyverse
+
+-   tamp
+
+-   spdep
+
+-   funModeling
+
+    ```{r}
+    pacman::p_load(sf,tidyverse,tmap,spdep,funModeling)
+    ```
+
+## 3. Importing data into R environment
+
+The data belonging to Nigeria should be extracted from the shapefiles *geo_export.* We use ***Projected*** ***Coordinate System*** whose identifier of EPSG is **26391**, so the *crs* = 26391. The function *st_read* of *sf* package is used to save the data in a simple feature data table. The data has been filtered when downloaded so no filter by *Nigeria* will be used here.
 
 ```{r eval=FALSE}
 wp <- st_read(dsn = "geodata",
               layer = "geo_export",
-              crs = 4326) %>%
-  filter(clean_coun == "Nigeria")
+              crs = 26391)
 ```
+
+From the description above,
+
+-   the data has 95008 features and 72 fields
+
+-   Geometry type is POINT
+
+-   Coordinate system is Projected System Minna/Nigeria west Belt
+
+Then we upload the extracted tidy data table into the data file *geodata.*
 
 ```{r eval=FALSE}
 write_rds(wp,"geodata/wp_nga.rds")
 ```
 
+Now we import Nigeria LGA boundary data into R environment using the same function, and also extract Projected Coordinate System to match the water point data.
+
 ```{r eval=FALSE}
 nga <- st_read(dsn = "geodata",
                layer = "geoBoundaries-NGA-ADM2",
-               crs = 4326)
+               crs = 26391)
 ```
+
+From the description above,
+
+-   Geometry type of the data is MULTIPOLYGON
+
+-   Coordinate system is Projected System Minna/Nigeria west Belt
+
+## 4. Data Wrangling
+
+### 4.1 Data Issues
+
+#### 4,1,1 Missing Value Check
+
+First let us check if there are missing values in the extracted data tables.
+
+```{r}
+summary(nga[rowSums(is.na(nga))!=0,])
+```
+
+As we can see the summary information above, there is no missing value in LGA boundary data.
+
+```{r}
+summary(wp[rowSums(is.na(wp))!=0,])
+```
+
+As we can see from information above, there are so many missing values in the water point data. For example, there are 94994 missing values in *clean_adm4,* 46891 missing values in *install_ye*, and so on.
+
+#### 4.1.2 Recoding Missing Values into Strings
+
+Next, we recode these missing values of *status_cle*, which we will use in the subsequent analysis into *"Unknown"* to proceed our analysis.
 
 ```{r eval=FALSE}
 wp_nga <- read_rds("geodata/wp_nga.rds") %>%
   mutate(status_cle = replace_na(status_cle, "Unknown"))
 ```
 
+### 4.2 Data Processing
+
+#### 4.2.1 Glimpse The Data Tables
+
+We take a check at our data tables with *glimpse()* of *dplyr* package.
+
+```{r}
+glimpse(nga)
+```
+
+We can see that the table has 774 rows and 6 columns, which are in *character* and *multipolygon* classes.
+
+-   *shapename*
+
+-   *Level*
+
+-   *shapeID*
+
+-   *shapeGroup*
+
+-   *shapeType*
+
+-   *geometry.*
+
+    ```{r}
+    glimpse(wp_nga)
+    ```
+
+We can see that the table has 95008 rows and 73 columns.
+
+Then let us have a quick look at the geometry of the geospatioal data by using *plot()* and *st_geometry()* of *sf* package.
+
+```{r}
+plot(st_geometry(nga))
+```
+
+#### 4.2.2 Distribution of The Data in *status_cle* Field
+
+Then we can display the distribution of the data in *status_cle* field using *freq().*
+
 ```{r eval=FALSE}
 freq(data=wp_nga, 
      input = 'status_cle')
 ```
 
+From the hist graph, it is shown that ***Functional Water Point*** takes the most portion of **48.29 %** within the *status_cle* field. Next is ***Non-Functional Water Point**,* our objective analysed in this project, which takes **30.93%** in the field.
+
+#### 4.2.3 Points in Polygons
+
+We first extract *Functional* water point, on which we focus to analyse, from the whole *status_cle* field, and write the simple feature data table into *rds* files.
+
 ```{r eval=FALSE}
 wpt_functional <- wp_nga %>%
   filter(status_cle %in%
            c("Functional", 
-             "Functional but not in use",
-             "Functional but needs repair"))
+             "Functional but needs repair",
+             "Functional but not in use"))
 write_rds(wpt_functional,"geodata/wpt_functional.rds")
+```
+
+We can check the proportion of each attribute in *Functional Water Point* as shown below.
+
+```{r}
+freq(data=wpt_functional, 
+     input = 'status_cle')
+```
+
+We then extract *Non-Functional* water point from the whole *status_cle* field, and write the simple feature data table into *rds* files.
+
+```{r eval=FALSE}
+wpt_nonfunctional <- wp_nga %>%
+  filter(status_cle %in%
+           c("Abandoned/Decommissioned", 
+             "Abandoned",
+             "Non-Functional",
+             "Non functional due to dry season",
+             "Non-Functional due to dry season"))
+write_rds(wpt_nonfunctional,"geodata/wpt_nonfunctional.rds")
+```
+
+We can check the proportion of each attribute in *Non-Functional Water Point* as shown below.
+
+```{r}
+freq(data=wpt_nonfunctional, 
+     input = 'status_cle')
+```
+
+Now we count the number of *Total,* *Functional* and *Non-Functional* water points at LGA level using *st_intersects()*.
+
+```{r}
+FC<- lengths(st_intersects(nga, wpt_nonfunctional))
+NFC<- lengths(st_intersects(nga, wpt_functional))
+TL<-lengths(st_intersects(nga, wp_nga))
+```
+
+We merge the count of *Total Water Point, Functional Water Point* and *Non-Functional Water Point* in polygons with LGA data table *nga* as *nga_wp.*
+
+```{r}
+nga_wp <- nga %>% 
+  mutate(`total wpt` = TL) %>%
+  mutate(`wpt functional` = FC) %>%
+  mutate(`wpt non-functional` = NFC)
+```
+
+Then we calculate the portion of numbers of functional and non-functional water points in each polygon, and merge it with *nga* data table.
+
+```{r eval=FALSE}
+nga_wp <- nga_wp %>%
+  mutate(pct_functional = `wpt functional`/`total wpt`) %>%
+  mutate(`pct_non-functional` = `wpt non-functional`/`total wpt`)
+```
+
+Now we save the data table into *rds* format with the chunk below. And delete other raw data.
+
+```{r eval=FALSE}
+write_rds(nga_wp, "geodata/nga_wp.rds")
+```
+
+### 5. Geospatial Analysis
+
+#### 5.1 Visualizing Water Point Indicator
+
+Now we can visualize the distributions of proportions of *Functional* and *Non-Functional water point* using *ggplot2* package.
+
+```{r}
+nga_wp <- read_rds("geodata/nga_wp.rds")
+ggplot(data=nga_wp, 
+       aes(x= as.numeric(`pct_non-functional`)))+
+  geom_histogram(bins=20, 
+                 color="black", 
+                 fill="light blue") +
+  labs(title = "Are non-functional water points even distributed in Nigeria?",
+       subtitle= "There are many planning sub-zones with a single pre-school, on the other hand, \nthere are two planning sub-zones with at least 20 pre-schools",
+      x = "Non-Functional Water points proportion",
+      y = "Frequency")
+```
+
+We can see that
+
+Spatial distribution of *Non-Functional water points* across the nation is visualized as below.
+
+```{r}
+wpt_nonfunctional<-read_rds("geodata/wpt_nonfunctional.rds")
+tmap_mode("plot")
+tm_shape(st_geometry(nga_wp)) +
+  tm_borders(alpha = 0.5) +
+  tmap_options(check.and.fix = TRUE) +
+tm_shape(wpt_nonfunctional) +
+  tm_dots(col="red", size=0.05) +
+  tm_layout(main.title = "Non-Functional Water Point",
+          main.title.position = "center",
+          main.title.size = 1.2,
+          frame = TRUE)
+```
+
+Now, we are going to prepare a basemap and a choropleth map showing the distribution of *Non-Functional* water point by using *qtm()* of **tmap** package.
+
+```{r}
+
+equal <- tm_shape(nga_wp) +
+  tm_fill("wpt non-functional",
+          n = 5,
+          style = "equal") +
+  tm_borders(alpha = 0.5) +
+  tm_layout(main.title = "Equal interval classification",
+            legend.outside = TRUE,
+            legend.height = 0.45, 
+            legend.width = 5.0,
+            legend.position = c("right", "bottom"),
+            frame = FALSE)
+
+quantile <- tm_shape(nga_wp) +
+  tm_fill("wpt non-functional",
+          n = 5,
+          style = "quantile") +
+  tm_borders(alpha = 0.5) +
+  tm_layout(main.title = "Equal quantile classification",
+            legend.outside = TRUE,
+            legend.height = 0.45, 
+            legend.width = 5.0,
+            legend.position = c("right", "bottom"),
+            frame = FALSE)
+
+tmap_arrange(equal, 
+             quantile, 
+             asp=1, 
+             ncol=2)
+```
+
+#### 5.2 Global Spatial Autocorrelation
+
+Before we can compute the global spatial autocorrelation statistics,
+we need to construct a spatial weights of the study area. Because we have had a quick look that the study area has no isolate districts from the geometry map, there's no reason to drop Contiguity Spatial Weights or Distance Spatial Weights. So we can use both method and compare the results at last.
+
+##### 5.2.1 Computing (QUEEN) contiguity based neighbours
+
+The code chunk below is to compute neigbours using Queen's Case.
+
+```{r}
+wm_q <- poly2nb(nga_wp, queen=TRUE)
+summary(wm_q)
+```
+
+The summary report above shows that there are 774 area units in Nigeria.
+The most connected area unit 508 has 14 neighbours. There are two area
+units with only one heighbours.
+
+For each polygon in our polygon object, *wm_q* lists all neighboring polygons. We can check the detail of the number 508 polygon:
+
+```{r}
+wm_q[[508]]
+```
+
+The ID of the number 508 district can be check by below code chunk.
+
+```{r}
+nga_wp$shapeName[1]
 ```
