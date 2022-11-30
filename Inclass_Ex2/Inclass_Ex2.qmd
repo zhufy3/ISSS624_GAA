@@ -152,13 +152,31 @@ write_rds(nga_wp, "geodata/nga_wp.rds")
 With the numbers of water points in the polygons to fill the map, we use *qtm* to draw the spatial distribution to show the degree of sparseness.
 
 ```{r}
-#| fig-width: 14
-#| fig-height: 12
 nga_wp<-read_rds("geodata/nga_wp.rds")
-total <- qtm(nga_wp, "total wpt")
-wp_functional <- qtm(nga_wp, "wpt functional")
-wp_nonfunctional <- qtm(nga_wp, "wpt non-functional")
-unknown <- qtm(nga_wp, "wpt unknown")
+total <- qtm(nga_wp, "total wpt")+
+  tm_layout(legend.outside = TRUE,
+            legend.height = 0.45, 
+            legend.width = 5.0,
+            legend.position = c("right", "bottom"),
+            frame = FALSE)
+wp_functional <- qtm(nga_wp, "wpt functional")+
+  tm_layout(legend.outside = TRUE,
+            legend.height = 0.45, 
+            legend.width = 5.0,
+            legend.position = c("right", "bottom"),
+            frame = FALSE)
+wp_nonfunctional <- qtm(nga_wp, "wpt non-functional")+
+  tm_layout(legend.outside = TRUE,
+            legend.height = 0.45, 
+            legend.width = 5.0,
+            legend.position = c("right", "bottom"),
+            frame = FALSE)
+unknown <- qtm(nga_wp, "wpt unknown")+
+  tm_layout(legend.outside = TRUE,
+            legend.height = 0.45, 
+            legend.width = 5.0,
+            legend.position = c("right", "bottom"),
+            frame = FALSE)
 
 tmap_arrange(total, wp_functional, wp_nonfunctional, unknown, asp=1, ncol=2)
 
