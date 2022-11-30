@@ -6,8 +6,9 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="author" content="Fangyuan ZHU">
 
-<title>ISSS624GAA - Take-home Ex1</title>
+<title>ISSS624GAA - Inclass Exercise 2</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -182,7 +183,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
     <a class="nav-link" href="../index.html">Home</a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="../about.html">About</a>
+    <a class="nav-link" href="../about.html">About the author</a>
   </li>  
 </ul>
               <div id="quarto-search" class="" title="Search"></div>
@@ -200,13 +201,19 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Take-home Ex1</h1>
+<h1 class="title">Inclass Exercise 2</h1>
 </div>
 
 
 
 <div class="quarto-title-meta">
 
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Fangyuan ZHU </p>
+          </div>
+  </div>
     
     
   </div>
@@ -214,42 +221,1177 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 </header>
 
+<section id="geospatial-analysis-for-water-points-in-nigeria" class="level1">
+<h1>Geospatial Analysis for water points in Nigeria</h1>
+<section id="background-of-the-analysis" class="level2">
+<h2 class="anchored" data-anchor-id="background-of-the-analysis">Background of the analysis</h2>
+<p>Water is the source of life on the Earth. Clean and accessible water is particularly critical for human life. Yet over 40% of the global population does not have access to sufficient clean water. Scarcity of water supply is a intractable problem to be solved in the world.</p>
+</section>
+<section id="objectives" class="level2">
+<h2 class="anchored" data-anchor-id="objectives">Objectives</h2>
+<p>The main aim of this project is to use water point related data from rural areas at the water point or small water scheme level and share the data via WPdx Data Repository. In order to address this complex problem, we focus on <strong>Nigeria</strong> as a study case and analyse the spatial distribution attributes of <strong><em>Not Functional Water Point</em></strong> in this project.</p>
+</section>
+<section id="data-used" class="level2">
+<h2 class="anchored" data-anchor-id="data-used">1. Data used</h2>
+<p>The data used in this project consists of two types:</p>
+<ul>
+<li><p>aspatial data from <a href="https://www.waterpointdata.org/access-data/">WPdx Global Data Repositories</a></p></li>
+<li><p>geospatial data of Nigeria Level-2 Administrative Boundary (also known as Local Government Area) polygon features GIS data.</p></li>
+</ul>
+</section>
+<section id="packages-used" class="level2">
+<h2 class="anchored" data-anchor-id="packages-used">2. Packages used</h2>
+<p>In this project, packages below are used to facilitate our analysis.</p>
+<ul>
+<li><p>sf</p></li>
+<li><p>tidyverse</p></li>
+<li><p>tamp</p></li>
+<li><p>spdep</p></li>
+<li><p>funModeling</p></li>
+<li><p>knitr</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(sf,tidyverse,tmap,readr,readx1)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>wp_nga<span class="ot">&lt;-</span><span class="fu">read_csv</span>(<span class="st">"geodata/wt.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(sf,tidyverse,tmap,spdep,funModeling,knitr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div></li>
+</ul>
+</section>
+<section id="importing-data-into-r-environment" class="level2">
+<h2 class="anchored" data-anchor-id="importing-data-into-r-environment">3. Importing data into R environment</h2>
+<p>The data belonging to Nigeria should be extracted from the shapefiles <em>geo_export.</em> We use <strong><em>Projected</em></strong> <strong><em>Coordinate System</em></strong> whose identifier of EPSG is <strong>26391</strong>, so the <em>crs</em> = 26391. The function <em>st_read</em> of <em>sf</em> package is used to save the data in a simple feature data table. The data has been filtered when downloaded so no filter by <em>Nigeria</em> will be used here.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>wp <span class="ot">&lt;-</span> <span class="fu">st_read</span>(<span class="at">dsn =</span> <span class="st">"geodata"</span>,</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>              <span class="at">layer =</span> <span class="st">"geo_export"</span>,</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>              <span class="at">crs =</span> <span class="dv">4326</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(clean_coun <span class="sc">==</span> <span class="st">"Nigeria"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>              <span class="at">crs =</span> <span class="dv">26391</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>From the description above,</p>
+<ul>
+<li><p>the data has 95008 features and 72 fields</p></li>
+<li><p>Geometry type is POINT</p></li>
+<li><p>Coordinate system is Projected System Minna/Nigeria west Belt</p></li>
+</ul>
+<p>Then we upload the extracted tidy data table into the data file <em>geodata.</em></p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write_rds</span>(wp,<span class="st">"geodata/wp_nga.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>Now we import Nigeria LGA boundary data into R environment using the same function, and also extract Projected Coordinate System to match the water point data.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>nga <span class="ot">&lt;-</span> <span class="fu">st_read</span>(<span class="at">dsn =</span> <span class="st">"geodata"</span>,</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>               <span class="at">layer =</span> <span class="st">"geoBoundaries-NGA-ADM2"</span>,</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">crs =</span> <span class="dv">4326</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">crs =</span> <span class="dv">26391</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>From the description above,</p>
+<ul>
+<li><p>Geometry type of the data is MULTIPOLYGON</p></li>
+<li><p>Coordinate system is Projected System Minna/Nigeria west Belt</p></li>
+</ul>
+</section>
+<section id="data-wrangling" class="level2">
+<h2 class="anchored" data-anchor-id="data-wrangling">4. Data Wrangling</h2>
+<section id="data-issues" class="level3">
+<h3 class="anchored" data-anchor-id="data-issues">4.1 Data Issues</h3>
+<section id="missing-value-check" class="level4">
+<h4 class="anchored" data-anchor-id="missing-value-check">4,1,1 Missing Value Check</h4>
+<p>First let us check if there are missing values in the extracted data tables.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(nga[<span class="fu">rowSums</span>(<span class="fu">is.na</span>(nga))<span class="sc">!=</span><span class="dv">0</span>,])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>As we can see the summary information above, there is no missing value in LGA boundary data.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(wp[<span class="fu">rowSums</span>(<span class="fu">is.na</span>(wp))<span class="sc">!=</span><span class="dv">0</span>,])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>As we can see from information above, there are so many missing values in the water point data. For example, there are 94994 missing values in <em>clean_adm4,</em> 46891 missing values in <em>install_ye</em>, and so on.</p>
+</section>
+<section id="recoding-missing-values-into-strings" class="level4">
+<h4 class="anchored" data-anchor-id="recoding-missing-values-into-strings">4.1.2 Recoding Missing Values into Strings</h4>
+<p>Next, we recode these missing values of <em>status_cle</em>, which we will use in the subsequent analysis into <em>“Unknown”</em> to proceed our analysis.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>wp_nga <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"geodata/wp_nga.rds"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">status_cle =</span> <span class="fu">replace_na</span>(status_cle, <span class="st">"Unknown"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="data-processing" class="level3">
+<h3 class="anchored" data-anchor-id="data-processing">4.2 Data Processing</h3>
+<section id="glimpse-the-data-tables" class="level4">
+<h4 class="anchored" data-anchor-id="glimpse-the-data-tables">4.2.1 Glimpse The Data Tables</h4>
+<p>We take a check at our data tables with <em>glimpse()</em> of <em>dplyr</em> package.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(nga)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We can see that the table has 774 rows and 6 columns, which are in <em>character</em> and <em>multipolygon</em> classes.</p>
+<ul>
+<li><p><em>shapename</em></p></li>
+<li><p><em>Level</em></p></li>
+<li><p><em>shapeID</em></p></li>
+<li><p><em>shapeGroup</em></p></li>
+<li><p><em>shapeType</em></p></li>
+<li><p><em>geometry.</em></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(wp_nga)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div></li>
+</ul>
+<p>We can see that the table has 95008 rows and 73 columns.</p>
+<p>Then let us have a quick look at the geometry of the geospatioal data by using <em>plot()</em> and <em>st_geometry()</em> of <em>sf</em> package.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">st_geometry</span>(nga))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="distribution-of-the-data-in-status_cle-field" class="level4">
+<h4 class="anchored" data-anchor-id="distribution-of-the-data-in-status_cle-field">4.2.2 Distribution of The Data in <em>status_cle</em> Field</h4>
+<p>Then we can display the distribution of the data in <em>status_cle</em> field using <em>freq().</em></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">freq</span>(<span class="at">data=</span>wp_nga, </span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>     <span class="at">input =</span> <span class="st">'status_cle'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>From the hist graph, it is shown that <strong><em>Functional Water Point</em></strong> takes the most portion of <strong>48.29 %</strong> within the <em>status_cle</em> field. Next is <em><strong>Non-Functional Water Point</strong>,</em> our objective analysed in this project, which takes <strong>30.93%</strong> in the field.</p>
+</section>
+<section id="points-in-polygons" class="level4">
+<h4 class="anchored" data-anchor-id="points-in-polygons">4.2.3 Points in Polygons</h4>
+<p>We first extract <em>Functional</em> water point, on which we focus to analyse, from the whole <em>status_cle</em> field, and write the simple feature data table into <em>rds</em> files.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>wpt_functional <span class="ot">&lt;-</span> wp_nga <span class="sc">%&gt;%</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(status_cle <span class="sc">%in%</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>           <span class="fu">c</span>(<span class="st">"Functional"</span>, </span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>             <span class="st">"Functional but needs repair"</span>,</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>             <span class="st">"Functional but not in use"</span>))</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="fu">write_rds</span>(wpt_functional,<span class="st">"geodata/wpt_functional.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We can check the proportion of each attribute in <em>Functional Water Point</em> as shown below.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">freq</span>(<span class="at">data=</span>wpt_functional, </span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>     <span class="at">input =</span> <span class="st">'status_cle'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We then extract <em>Non-Functional</em> water point from the whole <em>status_cle</em> field, and write the simple feature data table into <em>rds</em> files.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>wpt_nonfunctional <span class="ot">&lt;-</span> wp_nga <span class="sc">%&gt;%</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(status_cle <span class="sc">%in%</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>           <span class="fu">c</span>(<span class="st">"Abandoned/Decommissioned"</span>, </span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>             <span class="st">"Abandoned"</span>,</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>             <span class="st">"Non-Functional"</span>,</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>             <span class="st">"Non functional due to dry season"</span>,</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>             <span class="st">"Non-Functional due to dry season"</span>))</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a><span class="fu">write_rds</span>(wpt_nonfunctional,<span class="st">"geodata/wpt_nonfunctional.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We can check the proportion of each attribute in <em>Non-Functional Water Point</em> as shown below.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">freq</span>(<span class="at">data=</span>wpt_nonfunctional, </span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>     <span class="at">input =</span> <span class="st">'status_cle'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Now we count the number of <em>Total,</em> <em>Functional</em> and <em>Non-Functional</em> water points at LGA level using <em>st_intersects()</em>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>FC<span class="ot">&lt;-</span> <span class="fu">lengths</span>(<span class="fu">st_intersects</span>(nga, wpt_nonfunctional))</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>NFC<span class="ot">&lt;-</span> <span class="fu">lengths</span>(<span class="fu">st_intersects</span>(nga, wpt_functional))</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>TL<span class="ot">&lt;-</span><span class="fu">lengths</span>(<span class="fu">st_intersects</span>(nga, wp_nga))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We merge the count of <em>Total Water Point, Functional Water Point</em> and <em>Non-Functional Water Point</em> in polygons with LGA data table <em>nga</em> as <em>nga_wp.</em></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>nga_wp <span class="ot">&lt;-</span> nga <span class="sc">%&gt;%</span> </span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="st">`</span><span class="at">total wpt</span><span class="st">`</span> <span class="ot">=</span> TL) <span class="sc">%&gt;%</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="st">`</span><span class="at">wpt functional</span><span class="st">`</span> <span class="ot">=</span> FC) <span class="sc">%&gt;%</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="st">`</span><span class="at">wpt non-functional</span><span class="st">`</span> <span class="ot">=</span> NFC)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Then we calculate the portion of numbers of functional and non-functional water points in each polygon, and merge it with <em>nga</em> data table.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>nga_wp <span class="ot">&lt;-</span> nga_wp <span class="sc">%&gt;%</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">pct_functional =</span> <span class="st">`</span><span class="at">wpt functional</span><span class="st">`</span><span class="sc">/</span><span class="st">`</span><span class="at">total wpt</span><span class="st">`</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="st">`</span><span class="at">pct_non-functional</span><span class="st">`</span> <span class="ot">=</span> <span class="st">`</span><span class="at">wpt non-functional</span><span class="st">`</span><span class="sc">/</span><span class="st">`</span><span class="at">total wpt</span><span class="st">`</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Now we save the data table into <em>rds</em> format with the chunk below. And delete other raw data.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write_rds</span>(nga_wp, <span class="st">"geodata/nga_wp.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="geospatial-analysis" class="level3">
+<h3 class="anchored" data-anchor-id="geospatial-analysis">5. Geospatial Analysis</h3>
+<section id="visualizing-water-point-indicator" class="level4">
+<h4 class="anchored" data-anchor-id="visualizing-water-point-indicator">5.1 Visualizing Water Point Indicator</h4>
+<p>Now we can visualize the distributions of proportions of <em>Functional</em> and <em>Non-Functional water point</em> using <em>ggplot2</em> package.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>nga_wp <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"geodata/nga_wp.rds"</span>)</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data=</span>nga_wp, </span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>       <span class="fu">aes</span>(<span class="at">x=</span> <span class="fu">as.numeric</span>(<span class="st">`</span><span class="at">pct_non-functional</span><span class="st">`</span>)))<span class="sc">+</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">bins=</span><span class="dv">20</span>, </span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>                 <span class="at">color=</span><span class="st">"black"</span>, </span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>                 <span class="at">fill=</span><span class="st">"light blue"</span>) <span class="sc">+</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Are non-functional water points even distributed in Nigeria?"</span>,</span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>       <span class="at">subtitle=</span> <span class="st">"There are many planning sub-zones with a single pre-school, on the other hand, </span><span class="sc">\n</span><span class="st">there are two planning sub-zones with at least 20 pre-schools"</span>,</span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>      <span class="at">x =</span> <span class="st">"Non-Functional Water points proportion"</span>,</span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>      <span class="at">y =</span> <span class="st">"Frequency"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="Take_home_Ex1_files/figure-html/unnamed-chunk-20-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>We can see that</p>
+<p>Spatial distribution of <em>Non-Functional water points</em> across the nation is visualized as below.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>wpt_nonfunctional<span class="ot">&lt;-</span><span class="fu">read_rds</span>(<span class="st">"geodata/wpt_nonfunctional.rds"</span>)</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_mode</span>(<span class="st">"plot"</span>)</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(<span class="fu">st_geometry</span>(nga_wp)) <span class="sc">+</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tmap_options</span>(<span class="at">check.and.fix =</span> <span class="cn">TRUE</span>) <span class="sc">+</span></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(wpt_nonfunctional) <span class="sc">+</span></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_dots</span>(<span class="at">col=</span><span class="st">"red"</span>, <span class="at">size=</span><span class="fl">0.05</span>) <span class="sc">+</span></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(<span class="at">main.title =</span> <span class="st">"Non-Functional Water Point"</span>,</span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>          <span class="at">main.title.position =</span> <span class="st">"center"</span>,</span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>          <span class="at">main.title.size =</span> <span class="fl">1.2</span>,</span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>          <span class="at">frame =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="Take_home_Ex1_files/figure-html/unnamed-chunk-21-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Now, we are going to prepare a basemap and a choropleth map showing the distribution of <em>Non-Functional</em> water point by using <em>qtm()</em> of <strong>tmap</strong> package.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>equal <span class="ot">&lt;-</span> <span class="fu">tm_shape</span>(nga_wp) <span class="sc">+</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"wpt non-functional"</span>,</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>          <span class="at">n =</span> <span class="dv">5</span>,</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>          <span class="at">style =</span> <span class="st">"equal"</span>) <span class="sc">+</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(<span class="at">main.title =</span> <span class="st">"Equal interval classification"</span>,</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>            <span class="at">legend.outside =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>            <span class="at">legend.height =</span> <span class="fl">0.45</span>, </span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>            <span class="at">legend.width =</span> <span class="fl">5.0</span>,</span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>            <span class="at">legend.position =</span> <span class="fu">c</span>(<span class="st">"right"</span>, <span class="st">"bottom"</span>),</span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>            <span class="at">frame =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>quantile <span class="ot">&lt;-</span> <span class="fu">tm_shape</span>(nga_wp) <span class="sc">+</span></span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"wpt non-functional"</span>,</span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>          <span class="at">n =</span> <span class="dv">5</span>,</span>
+<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>          <span class="at">style =</span> <span class="st">"quantile"</span>) <span class="sc">+</span></span>
+<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(<span class="at">main.title =</span> <span class="st">"Equal quantile classification"</span>,</span>
+<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a>            <span class="at">legend.outside =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a>            <span class="at">legend.height =</span> <span class="fl">0.45</span>, </span>
+<span id="cb22-21"><a href="#cb22-21" aria-hidden="true" tabindex="-1"></a>            <span class="at">legend.width =</span> <span class="fl">5.0</span>,</span>
+<span id="cb22-22"><a href="#cb22-22" aria-hidden="true" tabindex="-1"></a>            <span class="at">legend.position =</span> <span class="fu">c</span>(<span class="st">"right"</span>, <span class="st">"bottom"</span>),</span>
+<span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a>            <span class="at">frame =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb22-24"><a href="#cb22-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-25"><a href="#cb22-25" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_arrange</span>(equal, </span>
+<span id="cb22-26"><a href="#cb22-26" aria-hidden="true" tabindex="-1"></a>             quantile, </span>
+<span id="cb22-27"><a href="#cb22-27" aria-hidden="true" tabindex="-1"></a>             <span class="at">asp=</span><span class="dv">1</span>, </span>
+<span id="cb22-28"><a href="#cb22-28" aria-hidden="true" tabindex="-1"></a>             <span class="at">ncol=</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="Take_home_Ex1_files/figure-html/unnamed-chunk-22-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+</section>
+<section id="global-spatial-autocorrelation" class="level3">
+<h3 class="anchored" data-anchor-id="global-spatial-autocorrelation">6 Global Spatial Autocorrelation</h3>
+<p>Before we can compute the global spatial autocorrelation statistics, we need to construct a spatial weights of the study area. Because we have had a quick look that the study area has no isolate districts from the geometry map, there’s no reason to drop Contiguity Spatial Weights or Distance Spatial Weights. So we can use both method and compare the results at last.</p>
+<section id="computing-contiguity-based-neighbours" class="level4">
+<h4 class="anchored" data-anchor-id="computing-contiguity-based-neighbours">6.1 Computing Contiguity Based Neighbours</h4>
+<section id="computing-queen-contiguity-based-neighbours" class="level5">
+<h5 class="anchored" data-anchor-id="computing-queen-contiguity-based-neighbours">6.1.1Computing (QUEEN) contiguity based neighbours</h5>
+<p>The code chunk below is to compute neigbours using Queen’s Case.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>wm_q <span class="ot">&lt;-</span> <span class="fu">poly2nb</span>(nga_wp, <span class="at">queen=</span><span class="cn">TRUE</span>)</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(wm_q)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Neighbour list object:
+Number of regions: 774 
+Number of nonzero links: 4440 
+Percentage nonzero weights: 0.7411414 
+Average number of links: 5.736434 
+1 region with no links:
+86
+Link number distribution:
+
+  0   1   2   3   4   5   6   7   8   9  10  11  12  14 
+  1   2  14  57 125 182 140 122  72  41  12   4   1   1 
+2 least connected regions:
+138 560 with 1 link
+1 most connected region:
+508 with 14 links</code></pre>
+</div>
+</div>
+<p>The summary report above shows that there are 774 area units in Nigeria. The most connected area unit 508 has 14 neighbours. There are two area units with only one heighbours.</p>
+<p>Let us see the complete nearest neighbors of each polygon by using <em>str()</em> as shown below.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(wm_q)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>List of 774
+ $ : int [1:4] 2 548 624 721
+ $ : int [1:3] 1 624 721
+ $ : int [1:3] 261 447 507
+ $ : int [1:7] 257 263 436 446 454 466 709
+ $ : int [1:5] 203 208 331 617 738
+ $ : int [1:7] 170 217 218 337 379 553 758
+ $ : int [1:6] 8 176 214 281 349 555
+ $ : int [1:4] 7 214 544 555
+ $ : int [1:5] 18 104 337 601 757
+ $ : int [1:7] 25 216 325 364 365 528 632
+ $ : int [1:7] 26 27 43 157 191 524 565
+ $ : int [1:8] 135 263 417 446 520 690 695 709
+ $ : int [1:5] 31 37 471 583 584
+ $ : int [1:8] 170 362 363 546 577 581 589 626
+ $ : int [1:7] 49 82 177 297 306 352 580
+ $ : int [1:5] 30 187 328 357 360
+ $ : int [1:3] 35 638 639
+ $ : int [1:5] 9 19 104 576 601
+ $ : int [1:6] 18 103 104 376 574 576
+ $ : int [1:5] 419 466 471 508 641
+ $ : int [1:5] 61 162 269 520 596
+ $ : int [1:3] 49 297 326
+ $ : int [1:5] 54 291 537 618 619
+ $ : int [1:4] 123 527 673 761
+ $ : int [1:7] 10 181 216 314 325 366 552
+ $ : int [1:4] 11 27 191 562
+ $ : int [1:5] 11 26 562 565 762
+ $ : int [1:7] 29 173 300 315 316 358 369
+ $ : int [1:7] 28 173 182 358 378 460 591
+ $ : int [1:8] 16 38 39 186 192 329 357 360
+ $ : int [1:6] 13 94 211 471 561 584
+ $ : int [1:3] 51 62 693
+ $ : int [1:6] 166 227 238 655 743 750
+ $ : int [1:7] 42 104 213 330 553 559 757
+ $ : int [1:7] 17 275 295 378 460 638 639
+ $ : int [1:8] 50 107 164 247 408 432 455 759
+ $ : int [1:11] 13 38 40 211 212 320 570 583 584 620 ...
+ $ : int [1:7] 30 37 39 40 41 192 320
+ $ : int [1:4] 30 38 186 320
+ $ : int [1:4] 37 38 41 620
+ $ : int [1:5] 38 40 192 620 634
+ $ : int [1:4] 34 136 137 559
+ $ : int [1:3] 11 157 524
+ $ : int [1:6] 45 290 303 328 360 634
+ $ : int [1:3] 44 290 303
+ $ : int [1:4] 438 521 668 742
+ $ : int [1:5] 166 234 238 698 750
+ $ : int [1:4] 113 265 386 701
+ $ : int [1:7] 15 22 51 297 326 580 623
+ $ : int [1:8] 36 98 107 409 416 432 681 696
+ $ : int [1:8] 32 49 62 207 461 580 623 693
+ $ : int [1:6] 53 78 80 165 602 636
+ $ : int [1:8] 52 80 199 280 602 621 622 739
+ $ : int [1:7] 23 79 293 294 532 537 618
+ $ : int [1:3] 122 430 605
+ $ : int [1:5] 77 376 533 576 728
+ $ : int [1:4] 58 199 322 621
+ $ : int [1:7] 57 322 323 522 523 621 622
+ $ : int [1:5] 88 128 493 700 714
+ $ : int [1:7] 61 158 561 578 592 596 626
+ $ : int [1:5] 21 60 269 596 626
+ $ : int [1:6] 32 51 207 461 462 693
+ $ : int [1:6] 90 237 384 416 467 765
+ $ : int [1:8] 65 74 109 113 131 148 251 407
+ $ : int [1:5] 64 74 113 265 701
+ $ : int [1:6] 103 104 288 351 559 574
+ $ : int [1:7] 304 348 511 594 609 640 694
+ $ : int [1:2] 157 191
+ $ : int [1:9] 115 140 146 248 273 274 473 500 512
+ $ : int [1:5] 71 301 341 343 610
+ $ : int [1:9] 70 173 298 299 301 343 344 550 625
+ $ : int [1:8] 73 361 594 607 609 638 639 665
+ $ : int [1:6] 72 361 374 377 665 666
+ $ : int [1:6] 64 65 109 683 701 754
+ $ : int [1:7] 272 398 422 433 485 501 768
+ $ : int [1:8] 254 287 427 459 547 647 677 751
+ $ : int [1:6] 56 533 534 579 716 728
+ $ : int [1:7] 52 79 80 165 215 532 579
+ $ : int [1:5] 54 78 532 579 618
+ $ : int [1:5] 52 53 78 215 739
+ $ : int [1:5] 99 145 233 426 689
+ $ : int [1:3] 15 352 580
+ $ : int [1:4] 132 258 383 414
+ $ : int [1:5] 123 148 437 673 692
+ $ : int [1:7] 105 156 394 654 675 707 712
+ $ : int 0
+ $ : int [1:6] 151 221 226 399 410 486
+ $ : int [1:6] 59 150 489 648 700 714
+ $ : int [1:7] 260 408 416 463 674 681 759
+ $ : int [1:9] 63 163 232 236 237 452 497 710 765
+ $ : int [1:4] 160 271 406 440
+ $ : int [1:6] 119 390 392 487 656 668
+ $ : int [1:6] 123 354 402 607 665 666
+ $ : int [1:8] 31 158 436 471 520 561 596 709
+ $ : int [1:6] 391 392 405 469 656 708
+ $ : int [1:7] 97 139 389 403 420 451 653
+ $ : int [1:5] 96 389 451 662 773
+ $ : int [1:5] 50 231 432 696 708
+ $ : int [1:5] 81 426 689 760 769
+  [list output truncated]
+ - attr(*, "class")= chr "nb"
+ - attr(*, "region.id")= chr [1:774] "1" "2" "3" "4" ...
+ - attr(*, "call")= language poly2nb(pl = nga_wp, queen = TRUE)
+ - attr(*, "type")= chr "queen"
+ - attr(*, "sym")= logi TRUE</code></pre>
+</div>
+</div>
+<p>For each polygon in our polygon object, <em>wm_q</em> lists all neighboring polygons. We can check the detail of the number 508 polygon:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>wm_q[[<span class="dv">508</span>]]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1]  20 106 123 171 174 239 402 419 468 471 494 511 644 753</code></pre>
+</div>
+</div>
+<p>The ID of the number 508 district can be check by below code chunk.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>nga_wp<span class="sc">$</span>shapeName[<span class="dv">508</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "Mokwa"</code></pre>
+</div>
+</div>
+<p>The output reveals that Polygon ID=508 is Mokwa.</p>
+<p>We can retrieve the percentage of non-functional water points of this district ’s neighbours by using the code chunk below.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>nb1 <span class="ot">&lt;-</span> wm_q[[<span class="dv">508</span>]]</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>nb1 <span class="ot">&lt;-</span> nga_wp<span class="sc">$</span><span class="st">`</span><span class="at">pct_non-functional</span><span class="st">`</span>[nb1]</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>nb1</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] 0.5053763 0.8755187 0.7407407 0.5478723 0.4921875 0.5771429 0.5533981
+ [8] 0.4782609 0.6500000 0.7192982 0.3214286 0.5771429 0.5600000 0.5179856</code></pre>
+</div>
+</div>
+<p>The printed output above shows that the pct_nonfunctional of the 14 nearest neighbours based on Queen’s method are 0.053763, 0.8755187and so on.</p>
+</section>
+<section id="computing-rook-contiguity-based-neighbours" class="level5">
+<h5 class="anchored" data-anchor-id="computing-rook-contiguity-based-neighbours">6.1.2 Computing (ROOK) contiguity based neighbours</h5>
+<p>The code chunk below is to compute neigbours using Queen’s Case.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>wm_r <span class="ot">&lt;-</span> <span class="fu">poly2nb</span>(nga_wp, <span class="at">queen=</span><span class="cn">FALSE</span>)</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(wm_r)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Neighbour list object:
+Number of regions: 774 
+Number of nonzero links: 4420 
+Percentage nonzero weights: 0.7378029 
+Average number of links: 5.710594 
+1 region with no links:
+86
+Link number distribution:
+
+  0   1   2   3   4   5   6   7   8   9  10  11  12  14 
+  1   2  14  59 127 181 141 124  66  42  11   4   1   1 
+2 least connected regions:
+138 560 with 1 link
+1 most connected region:
+508 with 14 links</code></pre>
+</div>
+</div>
+<p>The summary report above shows the most connected area unit 508 has 14 neighbours. There are two area units with only one heighbours.</p>
+<p>Let us see the complete nearest neighbors of each polygon by using <em>str()</em> as shown below.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(wm_r)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>List of 774
+ $ : int [1:4] 2 548 624 721
+ $ : int [1:3] 1 624 721
+ $ : int [1:3] 261 447 507
+ $ : int [1:7] 257 263 436 446 454 466 709
+ $ : int [1:5] 203 208 331 617 738
+ $ : int [1:6] 170 217 218 337 379 553
+ $ : int [1:6] 8 176 214 281 349 555
+ $ : int [1:4] 7 214 544 555
+ $ : int [1:5] 18 104 337 601 757
+ $ : int [1:7] 25 216 325 364 365 528 632
+ $ : int [1:7] 26 27 43 157 191 524 565
+ $ : int [1:8] 135 263 417 446 520 690 695 709
+ $ : int [1:5] 31 37 471 583 584
+ $ : int [1:8] 170 362 363 546 577 581 589 626
+ $ : int [1:7] 49 82 177 297 306 352 580
+ $ : int [1:5] 30 187 328 357 360
+ $ : int [1:3] 35 638 639
+ $ : int [1:5] 9 19 104 576 601
+ $ : int [1:6] 18 103 104 376 574 576
+ $ : int [1:5] 419 466 471 508 641
+ $ : int [1:5] 61 162 269 520 596
+ $ : int [1:3] 49 297 326
+ $ : int [1:5] 54 291 537 618 619
+ $ : int [1:4] 123 527 673 761
+ $ : int [1:7] 10 181 216 314 325 366 552
+ $ : int [1:4] 11 27 191 562
+ $ : int [1:5] 11 26 562 565 762
+ $ : int [1:7] 29 173 300 315 316 358 369
+ $ : int [1:7] 28 173 182 358 378 460 591
+ $ : int [1:8] 16 38 39 186 192 329 357 360
+ $ : int [1:6] 13 94 211 471 561 584
+ $ : int [1:3] 51 62 693
+ $ : int [1:6] 166 227 238 655 743 750
+ $ : int [1:7] 42 104 213 330 553 559 757
+ $ : int [1:7] 17 275 295 378 460 638 639
+ $ : int [1:8] 50 107 164 247 408 432 455 759
+ $ : int [1:11] 13 38 40 211 212 320 570 583 584 620 ...
+ $ : int [1:7] 30 37 39 40 41 192 320
+ $ : int [1:4] 30 38 186 320
+ $ : int [1:4] 37 38 41 620
+ $ : int [1:5] 38 40 192 620 634
+ $ : int [1:4] 34 136 137 559
+ $ : int [1:3] 11 157 524
+ $ : int [1:6] 45 290 303 328 360 634
+ $ : int [1:3] 44 290 303
+ $ : int [1:4] 438 521 668 742
+ $ : int [1:5] 166 234 238 698 750
+ $ : int [1:4] 113 265 386 701
+ $ : int [1:7] 15 22 51 297 326 580 623
+ $ : int [1:8] 36 98 107 409 416 432 681 696
+ $ : int [1:7] 32 49 62 207 580 623 693
+ $ : int [1:6] 53 78 80 165 602 636
+ $ : int [1:8] 52 80 199 280 602 621 622 739
+ $ : int [1:7] 23 79 293 294 532 537 618
+ $ : int [1:3] 122 430 605
+ $ : int [1:5] 77 376 533 576 728
+ $ : int [1:4] 58 199 322 621
+ $ : int [1:7] 57 322 323 522 523 621 622
+ $ : int [1:5] 88 128 493 700 714
+ $ : int [1:7] 61 158 561 578 592 596 626
+ $ : int [1:5] 21 60 269 596 626
+ $ : int [1:5] 32 51 461 462 693
+ $ : int [1:6] 90 237 384 416 467 765
+ $ : int [1:8] 65 74 109 113 131 148 251 407
+ $ : int [1:5] 64 74 113 265 701
+ $ : int [1:6] 103 104 288 351 559 574
+ $ : int [1:7] 304 348 511 594 609 640 694
+ $ : int [1:2] 157 191
+ $ : int [1:9] 115 140 146 248 273 274 473 500 512
+ $ : int [1:5] 71 301 341 343 610
+ $ : int [1:9] 70 173 298 299 301 343 344 550 625
+ $ : int [1:8] 73 361 594 607 609 638 639 665
+ $ : int [1:6] 72 361 374 377 665 666
+ $ : int [1:6] 64 65 109 683 701 754
+ $ : int [1:7] 272 398 422 433 485 501 768
+ $ : int [1:8] 254 287 427 459 547 647 677 751
+ $ : int [1:6] 56 533 534 579 716 728
+ $ : int [1:7] 52 79 80 165 215 532 579
+ $ : int [1:5] 54 78 532 579 618
+ $ : int [1:5] 52 53 78 215 739
+ $ : int [1:5] 99 145 233 426 689
+ $ : int [1:3] 15 352 580
+ $ : int [1:4] 132 258 383 414
+ $ : int [1:5] 123 148 437 673 692
+ $ : int [1:7] 105 156 394 654 675 707 712
+ $ : int 0
+ $ : int [1:6] 151 221 226 399 410 486
+ $ : int [1:6] 59 150 489 648 700 714
+ $ : int [1:7] 260 408 416 463 674 681 759
+ $ : int [1:9] 63 163 232 236 237 452 497 710 765
+ $ : int [1:4] 160 271 406 440
+ $ : int [1:6] 119 390 392 487 656 668
+ $ : int [1:6] 123 354 402 607 665 666
+ $ : int [1:8] 31 158 436 471 520 561 596 709
+ $ : int [1:6] 391 392 405 469 656 708
+ $ : int [1:7] 97 139 389 403 420 451 653
+ $ : int [1:5] 96 389 451 662 773
+ $ : int [1:5] 50 231 432 696 708
+ $ : int [1:5] 81 426 689 760 769
+  [list output truncated]
+ - attr(*, "class")= chr "nb"
+ - attr(*, "region.id")= chr [1:774] "1" "2" "3" "4" ...
+ - attr(*, "call")= language poly2nb(pl = nga_wp, queen = FALSE)
+ - attr(*, "type")= chr "rook"
+ - attr(*, "sym")= logi TRUE</code></pre>
+</div>
+</div>
+</section>
+<section id="visualizing-contiguity-weights" class="level5">
+<h5 class="anchored" data-anchor-id="visualizing-contiguity-weights">6.1.3 Visualizing Contiguity Weights</h5>
+<p>A connectivity graph takes a point and displays a line to each neighboring point. We are working with polygons, so we will need to get centroid point in order to make our connectivity graphs. To get our longitude values we map the <em>st_centroid</em> function over the geometry column and access the longitude value through double bracket notation [[]] and 1.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>longitude <span class="ot">&lt;-</span> <span class="fu">map_dbl</span>(nga_wp<span class="sc">$</span>geometry, <span class="sc">~</span><span class="fu">st_centroid</span>(.x)[[<span class="dv">1</span>]])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We do the same for latitude with one key difference. We access the second value per each centroid with [[2]].</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>latitude <span class="ot">&lt;-</span> <span class="fu">map_dbl</span>(nga_wp<span class="sc">$</span>geometry, <span class="sc">~</span><span class="fu">st_centroid</span>(.x)[[<span class="dv">2</span>]])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Now that we have latitude and longitude, we use cbind to put longitude and latitude into the same object.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>coords <span class="ot">&lt;-</span> <span class="fu">cbind</span>(longitude, latitude)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We check the first few observations to see if things are formatted correctly.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(coords)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     longitude  latitude
+[1,]  7.372450  5.113107
+[2,]  7.352131  5.083219
+[3,] 13.322900 13.428835
+[4,]  6.847325  8.825812
+[5,]  7.771541  5.022061
+[6,]  8.219654  6.259845</code></pre>
+</div>
+</div>
+<p>Now we can plot the Queen Contiguity based on neighbor map.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))</span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(nga_wp<span class="sc">$</span>geometry, <span class="at">border=</span><span class="st">"lightgrey"</span>)</span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(wm_q, coords, <span class="at">pch =</span> <span class="dv">19</span>, <span class="at">cex =</span> <span class="fl">0.6</span>, <span class="at">add =</span> <span class="cn">TRUE</span>, <span class="at">col=</span> <span class="st">"red"</span>, <span class="at">main=</span><span class="st">"Queen Contiguity"</span>)</span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(nga_wp<span class="sc">$</span>geometry, <span class="at">border=</span><span class="st">"lightgrey"</span>)</span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(wm_r, coords, <span class="at">pch =</span> <span class="dv">19</span>, <span class="at">cex =</span> <span class="fl">0.6</span>, <span class="at">add =</span> <span class="cn">TRUE</span>, <span class="at">col =</span> <span class="st">"red"</span>, <span class="at">main=</span><span class="st">"Rook Contiguity"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="Take_home_Ex1_files/figure-html/unnamed-chunk-34-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Next, we need to assign weights to each neighboring polygon based both on <strong><em>Queen</em></strong> and <strong><em>Rook</em></strong>. In our case, each neighboring polygon will be assigned equal weight (style=“W”).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>rswm_q <span class="ot">&lt;-</span> <span class="fu">nb2listw</span>(wm_q, </span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>                   <span class="at">style=</span><span class="st">"W"</span>, </span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>                   <span class="at">zero.policy =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(rswm_q,  <span class="at">zero.policy =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Characteristics of weights list object:
+Neighbour list object:
+Number of regions: 774 
+Number of nonzero links: 4440 
+Percentage nonzero weights: 0.7411414 
+Average number of links: 5.736434 
+1 region with no links:
+86
+
+Weights style: W 
+Weights constants summary:
+    n     nn  S0       S1       S2
+W 773 597529 773 285.0658 3198.414</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>rswm_r <span class="ot">&lt;-</span> <span class="fu">nb2listw</span>(wm_r, </span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>                   <span class="at">style=</span><span class="st">"W"</span>, </span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>                   <span class="at">zero.policy =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(rswm_r,  <span class="at">zero.policy =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Characteristics of weights list object:
+Neighbour list object:
+Number of regions: 774 
+Number of nonzero links: 4420 
+Percentage nonzero weights: 0.7378029 
+Average number of links: 5.710594 
+1 region with no links:
+86
+
+Weights style: W 
+Weights constants summary:
+    n     nn  S0       S1       S2
+W 773 597529 773 286.4076 3198.261</code></pre>
+</div>
+</div>
+<p>The result is quite similar to Queen’s case, we can only choose Queen’s to do subsequent analysis.</p>
+</section>
+</section>
+<section id="computing-contiguity-based-on-adaptive-distance" class="level4">
+<h4 class="anchored" data-anchor-id="computing-contiguity-based-on-adaptive-distance">6.2 Computing Contiguity Based on Adaptive Distance</h4>
+<p>As we can see from the geometry, areas of polygons of sub-districts are quite different, some of them being very small. Therefore, if we use fixed distance weight matrix, some nearest neighbours cannot be included for polygons with small area.</p>
+<section id="determine-the-cut-off-distance" class="level5">
+<h5 class="anchored" data-anchor-id="determine-the-cut-off-distance">6.2.1 Determine the cut-off distance</h5>
+<p>Firstly, we need to determine the upper limit for distance band by using the steps below:</p>
+<ul>
+<li><p>Return a matrix with the indices of points belonging to the set of the k nearest neighbours of each other by using <a href="https://r-spatial.github.io/spdep/reference/knearneigh.html"><em>knearneigh()</em></a> of <strong>spdep</strong>.</p></li>
+<li><p>Convert the knn object returned by <em>knearneigh()</em> into a neighbours list of class nb with a list of integer vectors containing neighbour region number ids by using <a href="https://r-spatial.github.io/spdep/reference/knn2nb.html"><em>knn2nb()</em></a>.</p></li>
+<li><p>Return the length of neighbour relationship edges by using <a href="https://r-spatial.github.io/spdep/reference/nbdists.html"><em>nbdists()</em></a> of <strong>spdep</strong>. The function returns in the units of the coordinates if the coordinates are projected, in km otherwise.</p></li>
+</ul>
+<p>Remove the list structure of the returned object by using <a href="https://www.rdocumentation.org/packages/base/versions/3.6.2/topics/unlist"><strong>unlist()</strong></a>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>k1 <span class="ot">&lt;-</span> <span class="fu">knn2nb</span>(<span class="fu">knearneigh</span>(coords))</span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>k1dists <span class="ot">&lt;-</span> <span class="fu">unlist</span>(<span class="fu">nbdists</span>(k1, coords, <span class="at">longlat =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(k1dists)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  2.662  12.815  20.242  22.031  27.706  71.661 </code></pre>
+</div>
+</div>
+<p>The summary report shows that the largest first nearest neighbour distance is <strong>71.661 km</strong>, so using this as the upper threshold gives certainty that all units will have at least one neighbour.</p>
+</section>
+<section id="computing-adaptive-distance-weight-matrix" class="level5">
+<h5 class="anchored" data-anchor-id="computing-adaptive-distance-weight-matrix">6.2.2 Computing adaptive distance weight matrix</h5>
+<p>As shown in the code chunk below, we can control the numbers of neighbours directly using k-nearest neighbours, either accepting asymmetric neighbours or imposing symmetry. Commonly, we start from <strong>8</strong> neighbours.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>knn8 <span class="ot">&lt;-</span> <span class="fu">knn2nb</span>(<span class="fu">knearneigh</span>(coords, <span class="at">k=</span><span class="dv">8</span>))</span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>knn8</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Neighbour list object:
+Number of regions: 774 
+Number of nonzero links: 6192 
+Percentage nonzero weights: 1.033592 
+Average number of links: 8 
+Non-symmetric neighbours list</code></pre>
+</div>
+</div>
+<p>We can display the content of the matrix by using <em>str()</em>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(knn8)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>List of 774
+ $ : int [1:8] 2 321 364 548 597 624 721 725
+ $ : int [1:8] 1 321 548 597 624 721 725 726
+ $ : int [1:8] 250 261 447 477 492 507 509 526
+ $ : int [1:8] 12 20 257 263 446 454 466 690
+ $ : int [1:8] 203 208 286 288 331 334 539 738
+ $ : int [1:8] 170 217 218 337 379 553 577 601
+ $ : int [1:8] 8 176 214 281 283 306 544 555
+ $ : int [1:8] 7 214 281 306 327 544 555 651
+ $ : int [1:8] 18 19 218 337 574 576 601 757
+ $ : int [1:8] 25 216 325 364 365 528 552 632
+ $ : int [1:8] 26 27 43 68 191 524 565 762
+ $ : int [1:8] 135 263 417 429 446 454 690 695
+ $ : int [1:8] 31 37 211 320 393 570 583 584
+ $ : int [1:8] 170 363 379 546 563 577 581 589
+ $ : int [1:8] 22 49 82 177 297 306 580 623
+ $ : int [1:8] 30 187 188 296 328 357 360 635
+ $ : int [1:8] 35 275 295 378 460 591 638 639
+ $ : int [1:8] 9 19 218 376 574 576 601 757
+ $ : int [1:8] 9 18 56 103 376 574 576 601
+ $ : int [1:8] 4 106 125 239 263 419 454 466
+ $ : int [1:8] 60 61 162 269 520 578 596 626
+ $ : int [1:8] 49 297 326 443 515 623 682 693
+ $ : int [1:8] 54 291 292 536 537 614 618 619
+ $ : int [1:8] 84 123 437 476 527 652 673 761
+ $ : int [1:8] 10 181 216 314 325 366 552 730
+ $ : int [1:8] 11 27 68 191 336 439 562 762
+ $ : int [1:8] 11 26 191 439 562 565 663 762
+ $ : int [1:8] 29 178 299 300 301 358 369 598
+ $ : int [1:8] 172 173 178 182 358 378 460 591
+ $ : int [1:8] 16 39 41 186 192 329 357 360
+ $ : int [1:8] 13 37 211 289 561 570 583 584
+ $ : int [1:8] 51 62 461 462 515 623 682 693
+ $ : int [1:8] 47 166 227 238 242 655 743 750
+ $ : int [1:8] 42 104 136 137 213 553 559 757
+ $ : int [1:8] 17 275 276 277 278 279 295 460
+ $ : int [1:8] 50 107 247 408 432 455 681 759
+ $ : int [1:8] 38 40 211 212 570 583 584 629
+ $ : int [1:8] 30 39 40 41 186 192 320 570
+ $ : int [1:8] 30 38 40 41 186 192 320 329
+ $ : int [1:8] 37 38 39 41 186 192 320 570
+ $ : int [1:8] 30 38 39 40 186 192 360 634
+ $ : int [1:8] 86 136 137 499 587 613 718 734
+ $ : int [1:8] 11 68 157 524 549 565 590 645
+ $ : int [1:8] 16 45 192 290 303 328 360 634
+ $ : int [1:8] 44 187 290 303 328 341 360 599
+ $ : int [1:8] 387 417 429 438 459 521 668 742
+ $ : int [1:8] 33 111 166 234 238 691 698 750
+ $ : int [1:8] 65 113 265 386 407 428 482 701
+ $ : int [1:8] 22 32 297 326 515 623 682 693
+ $ : int [1:8] 36 98 107 247 409 416 432 681
+ $ : int [1:8] 32 62 461 462 515 580 623 693
+ $ : int [1:8] 53 78 165 293 532 602 603 636
+ $ : int [1:8] 52 78 80 165 280 602 621 636
+ $ : int [1:8] 23 79 293 294 532 536 537 618
+ $ : int [1:8] 122 169 246 333 430 571 605 697
+ $ : int [1:8] 77 368 376 533 534 576 601 728
+ $ : int [1:8] 53 58 199 312 322 323 621 622
+ $ : int [1:8] 57 322 323 564 602 603 621 622
+ $ : int [1:8] 88 128 129 259 493 700 714 748
+ $ : int [1:8] 61 158 563 578 589 592 596 626
+ $ : int [1:8] 21 60 269 578 589 592 596 626
+ $ : int [1:8] 32 51 461 462 515 623 682 693
+ $ : int [1:8] 90 237 384 416 467 497 765 772
+ $ : int [1:8] 48 65 74 113 131 265 386 407
+ $ : int [1:8] 48 64 74 113 265 407 683 701
+ $ : int [1:8] 19 103 104 288 331 338 351 574
+ $ : int [1:8] 347 348 560 566 567 609 640 694
+ $ : int [1:8] 11 43 157 190 191 549 590 645
+ $ : int [1:8] 140 146 248 274 473 500 512 513
+ $ : int [1:8] 71 298 299 301 341 343 344 610
+ $ : int [1:8] 70 172 173 298 299 343 344 625
+ $ : int [1:8] 17 361 566 567 568 609 638 639
+ $ : int [1:8] 72 361 374 377 404 607 665 666
+ $ : int [1:8] 65 109 113 251 265 683 741 754
+ $ : int [1:8] 110 272 398 422 433 485 501 768
+ $ : int [1:8] 254 287 427 459 470 547 647 677
+ $ : int [1:8] 56 195 533 534 579 618 619 728
+ $ : int [1:8] 52 54 79 80 165 215 532 636
+ $ : int [1:8] 54 78 165 293 532 579 618 636
+ $ : int [1:8] 52 53 78 165 215 280 636 739
+ $ : int [1:8] 99 145 227 233 426 483 689 760
+ $ : int [1:8] 15 32 49 51 177 352 580 623
+ $ : int [1:8] 132 258 383 414 433 529 767 768
+ $ : int [1:8] 24 131 148 386 437 482 673 692
+ $ : int [1:8] 105 156 267 394 654 675 707 712
+ $ : int [1:8] 42 136 137 499 587 613 718 734
+ $ : int [1:8] 149 151 221 226 399 410 486 657
+ $ : int [1:8] 59 116 128 150 489 648 700 714
+ $ : int [1:8] 260 408 463 542 674 676 681 759
+ $ : int [1:8] 63 163 236 237 384 452 710 765
+ $ : int [1:8] 160 271 388 406 473 475 492 525
+ $ : int [1:8] 95 119 390 391 392 423 487 656
+ $ : int [1:8] 73 354 374 402 594 607 665 666
+ $ : int [1:8] 13 31 60 158 436 561 596 709
+ $ : int [1:8] 92 390 391 392 405 423 469 656
+ $ : int [1:8] 97 139 389 403 420 451 488 653
+ $ : int [1:8] 96 168 389 420 451 653 662 773
+ $ : int [1:8] 50 117 153 231 409 432 696 708
+ $ : int [1:8] 81 145 426 483 667 689 760 769
+  [list output truncated]
+ - attr(*, "region.id")= chr [1:774] "1" "2" "3" "4" ...
+ - attr(*, "call")= language knearneigh(x = coords, k = 8)
+ - attr(*, "sym")= logi FALSE
+ - attr(*, "type")= chr "knn"
+ - attr(*, "knn-k")= num 8
+ - attr(*, "class")= chr "nb"</code></pre>
+</div>
+</div>
+<p>Notice that each county has 8 neighbours, no less no more!</p>
+</section>
+<section id="plotting-distance-based-neighbours" class="level5">
+<h5 class="anchored" data-anchor-id="plotting-distance-based-neighbours">6.2.3 Plotting distance based neighbours</h5>
+<p>Let us now plot the weight matrix using the code chunk below.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(nga_wp<span class="sc">$</span>geometry, <span class="at">border=</span><span class="st">"lightgrey"</span>)</span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(knn8, coords, <span class="at">pch =</span> <span class="dv">19</span>, <span class="at">cex =</span> <span class="fl">0.6</span>, <span class="at">add =</span> <span class="cn">TRUE</span>, <span class="at">col =</span> <span class="st">"red"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="Take_home_Ex1_files/figure-html/unnamed-chunk-39-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Next, we need to assign weights to each neighboring polygon based both on <em>Adaptive Distance</em>. In our case, each neighboring polygon will be assigned equal weight (style=“W”).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a>rswm_k <span class="ot">&lt;-</span> <span class="fu">nb2listw</span>(knn8, </span>
+<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>                   <span class="at">style=</span><span class="st">"W"</span>, </span>
+<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a>                   <span class="at">zero.policy =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(rswm_k,  <span class="at">zero.policy =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Characteristics of weights list object:
+Neighbour list object:
+Number of regions: 774 
+Number of nonzero links: 6192 
+Percentage nonzero weights: 1.033592 
+Average number of links: 8 
+Non-symmetric neighbours list
+
+Weights style: W 
+Weights constants summary:
+    n     nn  S0     S1       S2
+W 774 599076 774 174.25 3155.344</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="global-spatial-autocorrelation-test" class="level4">
+<h4 class="anchored" data-anchor-id="global-spatial-autocorrelation-test">6.3 Global Spatial Autocorrelation Test</h4>
+<p>The Null Hypothesis for Spatial Randomness:</p>
+<ul>
+<li><p>Observed spatial pattern of values is equally likely as any other spatial pattern.</p></li>
+<li><p>Values at one location do not depend on values at other (neighbouring) locations.</p></li>
+<li><p>Under spatial randomness, the location of values may be altered without affecting the information content of the data.</p>
+<p>We mainly have two methods to test the teospatial global autocorrelation.</p></li>
+<li><p>Moran’s I Test</p></li>
+<li><p>Geary’s C Test</p></li>
+</ul>
+<section id="morans-i-test" class="level5">
+<h5 class="anchored" data-anchor-id="morans-i-test">6.3.1 Moran’s I Test</h5>
+<p>The code chunk below performs Moran’s I statistical testing using <a href="https://r-spatial.github.io/spdep/reference/moran.test.html"><em>moran.test()</em></a> of <strong>spdep</strong>.</p>
+<ul>
+<li>Based on Queen’s case:</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="fu">moran.test</span>(nga_wp<span class="sc">$</span><span class="st">`</span><span class="at">pct_non-functional</span><span class="st">`</span>, </span>
+<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a>           <span class="at">listw=</span>rswm_q, </span>
+<span id="cb56-3"><a href="#cb56-3" aria-hidden="true" tabindex="-1"></a>           <span class="at">zero.policy =</span> <span class="cn">TRUE</span>, </span>
+<span id="cb56-4"><a href="#cb56-4" aria-hidden="true" tabindex="-1"></a>           <span class="at">na.action=</span>na.omit)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    Moran I test under randomisation
+
+data:  nga_wp$`pct_non-functional`  
+weights: rswm_q  n reduced by no-neighbour observations
+  
+
+Moran I statistic standard deviate = 24.953, p-value &lt; 2.2e-16
+alternative hypothesis: greater
+sample estimates:
+Moran I statistic       Expectation          Variance 
+     0.5418949105     -0.0012953368      0.0004738697 </code></pre>
+</div>
+</div>
+<ul>
+<li>Based on Adaptive Distance:</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="fu">moran.test</span>(nga_wp<span class="sc">$</span><span class="st">`</span><span class="at">pct_non-functional</span><span class="st">`</span>, </span>
+<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a>           <span class="at">listw=</span>rswm_k, </span>
+<span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a>           <span class="at">zero.policy =</span> <span class="cn">TRUE</span>, </span>
+<span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a>           <span class="at">na.action=</span>na.omit)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    Moran I test under randomisation
+
+data:  nga_wp$`pct_non-functional`  
+weights: rswm_k    
+
+Moran I statistic standard deviate = 31.144, p-value &lt; 2.2e-16
+alternative hypothesis: greater
+sample estimates:
+Moran I statistic       Expectation          Variance 
+     0.5268940487     -0.0012936611      0.0002876224 </code></pre>
+</div>
+</div>
+<p>From the summary of the test result, we can see that the <strong>p-value</strong> is less than <strong>0.05</strong>, which means we have evident reasons to reject the Null Hypothesis that the percentage of Non-Functional water point is randomly distributed across the country.</p>
+</section>
+<section id="computing-monte-carlo-morans-i" class="level5">
+<h5 class="anchored" data-anchor-id="computing-monte-carlo-morans-i">6.3.2 Computing Monte Carlo Moran’s I</h5>
+<p>We already get the result of the Moran’s I Test, but we can confirm the test by simulating Monte Carlo.</p>
+<ul>
+<li>Based on Queen’s case:</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1234</span>)</span>
+<span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a>bperm<span class="ot">=</span> <span class="fu">moran.mc</span>(nga_wp<span class="sc">$</span><span class="st">`</span><span class="at">pct_non-functional</span><span class="st">`</span>, </span>
+<span id="cb60-3"><a href="#cb60-3" aria-hidden="true" tabindex="-1"></a>                <span class="at">listw=</span>rswm_q, </span>
+<span id="cb60-4"><a href="#cb60-4" aria-hidden="true" tabindex="-1"></a>                <span class="at">nsim=</span><span class="dv">999</span>, </span>
+<span id="cb60-5"><a href="#cb60-5" aria-hidden="true" tabindex="-1"></a>                <span class="at">zero.policy =</span> <span class="cn">TRUE</span>, </span>
+<span id="cb60-6"><a href="#cb60-6" aria-hidden="true" tabindex="-1"></a>                <span class="at">na.action=</span>na.omit)</span>
+<span id="cb60-7"><a href="#cb60-7" aria-hidden="true" tabindex="-1"></a>bperm</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    Monte-Carlo simulation of Moran I
+
+data:  nga_wp$`pct_non-functional` 
+weights: rswm_q  
+number of simulations + 1: 1000 
+
+statistic = 0.54189, observed rank = 1000, p-value = 0.001
+alternative hypothesis: greater</code></pre>
+</div>
+</div>
+<ul>
+<li>Based on Adaptive Distance:</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb62"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1234</span>)</span>
+<span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a>bperm<span class="ot">=</span> <span class="fu">moran.mc</span>(nga_wp<span class="sc">$</span><span class="st">`</span><span class="at">pct_non-functional</span><span class="st">`</span>, </span>
+<span id="cb62-3"><a href="#cb62-3" aria-hidden="true" tabindex="-1"></a>                <span class="at">listw=</span>rswm_k, </span>
+<span id="cb62-4"><a href="#cb62-4" aria-hidden="true" tabindex="-1"></a>                <span class="at">nsim=</span><span class="dv">999</span>, </span>
+<span id="cb62-5"><a href="#cb62-5" aria-hidden="true" tabindex="-1"></a>                <span class="at">zero.policy =</span> <span class="cn">TRUE</span>, </span>
+<span id="cb62-6"><a href="#cb62-6" aria-hidden="true" tabindex="-1"></a>                <span class="at">na.action=</span>na.omit)</span>
+<span id="cb62-7"><a href="#cb62-7" aria-hidden="true" tabindex="-1"></a>bperm</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    Monte-Carlo simulation of Moran I
+
+data:  nga_wp$`pct_non-functional` 
+weights: rswm_k  
+number of simulations + 1: 1000 
+
+statistic = 0.52689, observed rank = 1000, p-value = 0.001
+alternative hypothesis: greater</code></pre>
+</div>
+</div>
+<p>From the summary of the test result, we can see that the <strong>p-value</strong> is <strong>0.001,</strong> still less than <strong>0.05</strong>, which means we have evident reasons to reject the Null Hypothesis that the percentage of Non-Functional water point is randomly distributed across the country. And the <strong>statistic = 0.5…&gt;0.</strong> For the <strong>I statistic,</strong> if it is positive (I&gt;0): Clustered, observations tend to be similar;</p>
+</section>
+<section id="gearys-c-test" class="level5">
+<h5 class="anchored" data-anchor-id="gearys-c-test">6.3.3 Geary’s C Test</h5>
+<p>The code chunk below performs Geary’s C test for spatial autocorrelation by using <a href="https://r-spatial.github.io/spdep/reference/geary.test.html"><em>geary.test()</em></a> of <strong>spdep</strong>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb64"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a><span class="fu">geary.test</span>(nga_wp<span class="sc">$</span><span class="st">`</span><span class="at">pct_non-functional</span><span class="st">`</span>, <span class="at">listw=</span>rswm_q, <span class="at">zero.policy =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>The code chunk above says we have NA in the column <em>pct_non-functinal.</em> We should check the NA in the original data table. As the snippet shows, there are some percentage becomes <em>NaN</em> because the <em>total wpt</em> is 0. We should recode these NA as 0.<img src="images/tempsnip.png" class="img-fluid"></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb65"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a>nga_wp <span class="ot">&lt;-</span> nga_wp <span class="sc">%&gt;%</span></span>
+<span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">pct_functional =</span> <span class="fu">replace_na</span>(pct_functional,<span class="dv">0</span>))<span class="sc">%&gt;%</span></span>
+<span id="cb65-3"><a href="#cb65-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="st">`</span><span class="at">pct_non-functional</span><span class="st">`</span><span class="ot">=</span><span class="fu">replace_na</span>(<span class="st">`</span><span class="at">pct_non-functional</span><span class="st">`</span>,<span class="dv">0</span>))</span>
+<span id="cb65-4"><a href="#cb65-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb65-5"><a href="#cb65-5" aria-hidden="true" tabindex="-1"></a><span class="fu">write_rds</span>(nga_wp,<span class="st">"geodata/nga_wp.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Now we can do the Geary’s C test:</p>
+<ul>
+<li>Based on Queen’s case:</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb66"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="fu">geary.test</span>(nga_wp<span class="sc">$</span><span class="st">`</span><span class="at">pct_non-functional</span><span class="st">`</span>, <span class="at">listw=</span>rswm_q, <span class="at">zero.policy =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    Geary C test under randomisation
+
+data:  nga_wp$`pct_non-functional` 
+weights: rswm_q 
+
+Geary C statistic standard deviate = 23.855, p-value &lt; 2.2e-16
+alternative hypothesis: Expectation greater than statistic
+sample estimates:
+Geary C statistic       Expectation          Variance 
+     0.4489704923      1.0000000000      0.0005335554 </code></pre>
+</div>
+</div>
+<ul>
+<li>Based on Adaptive Distance:</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb68"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a><span class="fu">geary.test</span>(nga_wp<span class="sc">$</span><span class="st">`</span><span class="at">pct_non-functional</span><span class="st">`</span>, <span class="at">listw=</span>rswm_k, <span class="at">zero.policy =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    Geary C test under randomisation
+
+data:  nga_wp$`pct_non-functional` 
+weights: rswm_k 
+
+Geary C statistic standard deviate = 29.82, p-value &lt; 2.2e-16
+alternative hypothesis: Expectation greater than statistic
+sample estimates:
+Geary C statistic       Expectation          Variance 
+     0.4655497167      1.0000000000      0.0003212272 </code></pre>
+</div>
+</div>
+<p>From the summary of the test result, we can see that the <strong>p-value</strong> is less than <strong>0.05</strong>, which means we have evident reasons to reject the Null Hypothesis that the percentage of Non-Functional water point is randomly distributed across the country. The <strong>Geary C statistic = 0.4… &lt; 1.</strong></p>
+</section>
+<section id="computing-monte-carlo-gearys-c" class="level5">
+<h5 class="anchored" data-anchor-id="computing-monte-carlo-gearys-c">6.3.4 Computing Monte Carlo Geary’s C</h5>
+<p>The code chunk below performs permutation test for Geary’s C statistic by using <a href="https://r-spatial.github.io/spdep/reference/geary.mc.html"><em>geary.mc()</em></a> of <strong>spdep</strong>.</p>
+<ul>
+<li>Based on Queen’s case:</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb70"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1234</span>)</span>
+<span id="cb70-2"><a href="#cb70-2" aria-hidden="true" tabindex="-1"></a>bperm<span class="ot">=</span><span class="fu">geary.mc</span>(nga_wp<span class="sc">$</span><span class="st">`</span><span class="at">pct_non-functional</span><span class="st">`</span>, </span>
+<span id="cb70-3"><a href="#cb70-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">listw=</span>rswm_q, <span class="at">zero.policy =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb70-4"><a href="#cb70-4" aria-hidden="true" tabindex="-1"></a>               <span class="at">nsim=</span><span class="dv">999</span>)</span>
+<span id="cb70-5"><a href="#cb70-5" aria-hidden="true" tabindex="-1"></a>bperm</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    Monte-Carlo simulation of Geary C
+
+data:  nga_wp$`pct_non-functional` 
+weights: rswm_q 
+number of simulations + 1: 1000 
+
+statistic = 0.44897, observed rank = 1, p-value = 0.001
+alternative hypothesis: greater</code></pre>
+</div>
+</div>
+<ul>
+<li>Based on Adaptive Distance:</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb72"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb72-1"><a href="#cb72-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1234</span>)</span>
+<span id="cb72-2"><a href="#cb72-2" aria-hidden="true" tabindex="-1"></a>bperm<span class="ot">=</span><span class="fu">geary.mc</span>(nga_wp<span class="sc">$</span><span class="st">`</span><span class="at">pct_non-functional</span><span class="st">`</span>, </span>
+<span id="cb72-3"><a href="#cb72-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">listw=</span>rswm_k, <span class="at">zero.policy =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb72-4"><a href="#cb72-4" aria-hidden="true" tabindex="-1"></a>               <span class="at">nsim=</span><span class="dv">999</span>)</span>
+<span id="cb72-5"><a href="#cb72-5" aria-hidden="true" tabindex="-1"></a>bperm</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    Monte-Carlo simulation of Geary C
+
+data:  nga_wp$`pct_non-functional` 
+weights: rswm_k 
+number of simulations + 1: 1000 
+
+statistic = 0.46555, observed rank = 1, p-value = 0.001
+alternative hypothesis: greater</code></pre>
+</div>
+</div>
+<p>From the summary of the test result, we can see that the <strong>p-value</strong> is <strong>0.001,</strong> still less than <strong>0.05</strong>, which means we have evident reasons to reject the Null Hypothesis that the percentage of Non-Functional water point is randomly distributed across the country. And the <strong>statistic = 0.4… &lt; 1.</strong> For the <strong>c statistic,</strong> if it is Small c value (&lt;1) : Clustered, observations tend to be similar.</p>
+</section>
+</section>
+<section id="clusters-and-outliers-analysis" class="level4">
+<h4 class="anchored" data-anchor-id="clusters-and-outliers-analysis">6.4 Clusters and Outliers Analysis</h4>
+<section id="computing-local-morans-i" class="level5">
+<h5 class="anchored" data-anchor-id="computing-local-morans-i">6.4.1 Computing local Moran’s I</h5>
+<p>The code chunks below are used to compute local Moran’s I of <em>pct_non-functional</em> at the ADM2 level.</p>
+<ul>
+<li>Based on Queen’s case:</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb74"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb74-1"><a href="#cb74-1" aria-hidden="true" tabindex="-1"></a>fips <span class="ot">&lt;-</span> <span class="fu">order</span>(nga_wp<span class="sc">$</span>shapeName)</span>
+<span id="cb74-2"><a href="#cb74-2" aria-hidden="true" tabindex="-1"></a>localMI1 <span class="ot">&lt;-</span> <span class="fu">localmoran</span>(nga_wp<span class="sc">$</span><span class="st">`</span><span class="at">pct_non-functional</span><span class="st">`</span>, rswm_q,<span class="at">zero.policy =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb74-3"><a href="#cb74-3" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(localMI1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>           Ii          E.Ii      Var.Ii       Z.Ii Pr(z != E(Ii))
+1  0.40907414 -1.660246e-04 0.031995597  2.2878795   0.0221445413
+2  0.39803074 -1.789636e-04 0.046044739  1.8557601   0.0634877608
+3  4.24438429 -5.490795e-03 1.405196770  3.5851522   0.0003368817
+4 -0.05905876 -1.991603e-04 0.021845937 -0.3982282   0.6904619977
+5  0.05214498 -8.206875e-06 0.001263831  1.4670209   0.1423703651
+6  0.48684969 -4.743753e-04 0.052020002  2.1366465   0.0326267548</code></pre>
+</div>
+</div>
+<ul>
+<li>Based on Adaptive Distance:</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb76"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb76-1"><a href="#cb76-1" aria-hidden="true" tabindex="-1"></a>fips <span class="ot">&lt;-</span> <span class="fu">order</span>(nga_wp<span class="sc">$</span>shapeName)</span>
+<span id="cb76-2"><a href="#cb76-2" aria-hidden="true" tabindex="-1"></a>localMI2 <span class="ot">&lt;-</span> <span class="fu">localmoran</span>(nga_wp<span class="sc">$</span><span class="st">`</span><span class="at">pct_non-functional</span><span class="st">`</span>, rswm_k,<span class="at">zero.policy =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb76-3"><a href="#cb76-3" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(localMI2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>           Ii          E.Ii       Var.Ii       Z.Ii Pr(z != E(Ii))
+1  0.31375539 -1.660246e-04 0.0159145850  2.4884177   1.283129e-02
+2  0.31931690 -1.789636e-04 0.0171546552  2.4393507   1.471368e-02
+3  3.41649879 -5.490795e-03 0.5235270433  4.7294335   2.251472e-06
+4 -0.07691784 -1.991603e-04 0.0190902404 -0.5552588   5.787177e-01
+5  0.03346076 -8.206875e-06 0.0007868091  1.1931846   2.327971e-01
+6  0.40620127 -4.743753e-04 0.0454580796  1.9074037   5.646833e-02</code></pre>
+</div>
+</div>
+<p><em>localmoran()</em> function returns a matrix of values whose columns are:</p>
+<ul>
+<li><p>Ii: the local Moran’s I statistics</p></li>
+<li><p>E.Ii: the expectation of local moran statistic under the randomisation hypothesis</p></li>
+<li><p>Var.Ii: the variance of local moran statistic under the randomisation hypothesis</p></li>
+<li><p>Z.Ii:the standard deviate of local moran statistic</p></li>
+<li><p>Pr(): the p-value of local moran statistic</p></li>
+</ul>
+</section>
+<section id="mapping-the-local-morans-i" class="level5">
+<h5 class="anchored" data-anchor-id="mapping-the-local-morans-i">6.4.2 Mapping the local Moran’s I</h5>
+<p>Before mapping the local Moran’s I map, it is wise to append the local Moran’s I dataframe (i.e.&nbsp;localMI) onto nga_wp SpatialPolygonDataFrame. The code chunks below can be used to perform the task. The out SpatialPolygonDataFrame is called <em>nga_wp.localMI</em>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb78"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb78-1"><a href="#cb78-1" aria-hidden="true" tabindex="-1"></a>nga.localMI <span class="ot">&lt;-</span> <span class="fu">cbind</span>(nga_wp,localMI1,localMI2)<span class="sc">%&gt;%</span></span>
+<span id="cb78-2"><a href="#cb78-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">Pr.Ii =</span> Pr.z....E.Ii..)<span class="sc">%&gt;%</span></span>
+<span id="cb78-3"><a href="#cb78-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">Pr.Ii.1 =</span> Pr.z....E.Ii...<span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>wp_nga <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"geodata/wp_nga.rds"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">status_cle =</span> <span class="fu">replace_na</span>(status_cle, <span class="st">"Unknown"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb79"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb79-1"><a href="#cb79-1" aria-hidden="true" tabindex="-1"></a>qlocmp<span class="ot">&lt;-</span><span class="fu">tm_shape</span>(nga.localMI) <span class="sc">+</span></span>
+<span id="cb79-2"><a href="#cb79-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="at">col =</span> <span class="st">"Ii"</span>, </span>
+<span id="cb79-3"><a href="#cb79-3" aria-hidden="true" tabindex="-1"></a>          <span class="at">style =</span> <span class="st">"pretty"</span>,</span>
+<span id="cb79-4"><a href="#cb79-4" aria-hidden="true" tabindex="-1"></a>          <span class="at">palette =</span> <span class="st">"RdBu"</span>,</span>
+<span id="cb79-5"><a href="#cb79-5" aria-hidden="true" tabindex="-1"></a>          <span class="at">title =</span> <span class="st">"local moran statistics (QUEEN)"</span>) <span class="sc">+</span></span>
+<span id="cb79-6"><a href="#cb79-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb79-7"><a href="#cb79-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(<span class="at">legend.outside =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb79-8"><a href="#cb79-8" aria-hidden="true" tabindex="-1"></a>            <span class="at">legend.height =</span> <span class="fl">0.45</span>, </span>
+<span id="cb79-9"><a href="#cb79-9" aria-hidden="true" tabindex="-1"></a>            <span class="at">legend.width =</span> <span class="fl">5.0</span>,</span>
+<span id="cb79-10"><a href="#cb79-10" aria-hidden="true" tabindex="-1"></a>            <span class="at">legend.position =</span> <span class="fu">c</span>(<span class="st">"right"</span>, <span class="st">"bottom"</span>),</span>
+<span id="cb79-11"><a href="#cb79-11" aria-hidden="true" tabindex="-1"></a>            <span class="at">frame =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb79-12"><a href="#cb79-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb79-13"><a href="#cb79-13" aria-hidden="true" tabindex="-1"></a>klocmp<span class="ot">&lt;-</span><span class="fu">tm_shape</span>(nga.localMI) <span class="sc">+</span></span>
+<span id="cb79-14"><a href="#cb79-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="at">col =</span> <span class="st">"Ii.1"</span>, </span>
+<span id="cb79-15"><a href="#cb79-15" aria-hidden="true" tabindex="-1"></a>          <span class="at">style =</span> <span class="st">"pretty"</span>,</span>
+<span id="cb79-16"><a href="#cb79-16" aria-hidden="true" tabindex="-1"></a>          <span class="at">palette =</span> <span class="st">"RdBu"</span>,</span>
+<span id="cb79-17"><a href="#cb79-17" aria-hidden="true" tabindex="-1"></a>          <span class="at">title =</span> <span class="st">"local moran statistics (Adaptive Dis)"</span>) <span class="sc">+</span></span>
+<span id="cb79-18"><a href="#cb79-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb79-19"><a href="#cb79-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(<span class="at">legend.outside =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb79-20"><a href="#cb79-20" aria-hidden="true" tabindex="-1"></a>            <span class="at">legend.height =</span> <span class="fl">0.45</span>, </span>
+<span id="cb79-21"><a href="#cb79-21" aria-hidden="true" tabindex="-1"></a>            <span class="at">legend.width =</span> <span class="fl">5.0</span>,</span>
+<span id="cb79-22"><a href="#cb79-22" aria-hidden="true" tabindex="-1"></a>            <span class="at">legend.position =</span> <span class="fu">c</span>(<span class="st">"right"</span>, <span class="st">"bottom"</span>),</span>
+<span id="cb79-23"><a href="#cb79-23" aria-hidden="true" tabindex="-1"></a>            <span class="at">frame =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb79-24"><a href="#cb79-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb79-25"><a href="#cb79-25" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_arrange</span>(qlocmp,klocmp, <span class="at">asp=</span><span class="dv">1</span>, <span class="at">ncol=</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="Take_home_Ex1_files/figure-html/unnamed-chunk-54-1.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">freq</span>(<span class="at">data=</span>wp_nga, </span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>     <span class="at">input =</span> <span class="st">'status_cle'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+</section>
+<section id="mapping-the-local-morans-p-values" class="level5">
+<h5 class="anchored" data-anchor-id="mapping-the-local-morans-p-values">6.4.3 Mapping the local Moran’s p-values</h5>
+<p>The choropleth shows there is evidence for both positive and negative Ii values. However, it is useful to consider the p-values for each of these values, as consider above.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>wpt_functional <span class="ot">&lt;-</span> wp_nga <span class="sc">%&gt;%</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(status_cle <span class="sc">%in%</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>           <span class="fu">c</span>(<span class="st">"Functional"</span>, </span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>             <span class="st">"Functional but not in use"</span>,</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>             <span class="st">"Functional but needs repair"</span>))</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="fu">write_rds</span>(wpt_functional,<span class="st">"geodata/wpt_functional.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb80"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb80-1"><a href="#cb80-1" aria-hidden="true" tabindex="-1"></a>qpmp<span class="ot">&lt;-</span><span class="fu">tm_shape</span>(nga.localMI) <span class="sc">+</span></span>
+<span id="cb80-2"><a href="#cb80-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="at">col =</span> <span class="st">"Pr.Ii"</span>, </span>
+<span id="cb80-3"><a href="#cb80-3" aria-hidden="true" tabindex="-1"></a>          <span class="at">breaks=</span><span class="fu">c</span>(<span class="sc">-</span><span class="cn">Inf</span>, <span class="fl">0.001</span>, <span class="fl">0.01</span>, <span class="fl">0.05</span>, <span class="fl">0.1</span>, <span class="cn">Inf</span>),</span>
+<span id="cb80-4"><a href="#cb80-4" aria-hidden="true" tabindex="-1"></a>          <span class="at">palette=</span><span class="st">"-Blues"</span>, </span>
+<span id="cb80-5"><a href="#cb80-5" aria-hidden="true" tabindex="-1"></a>          <span class="at">title =</span> <span class="st">"local Moran's I p-values (QUEEN)"</span>) <span class="sc">+</span></span>
+<span id="cb80-6"><a href="#cb80-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb80-7"><a href="#cb80-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(<span class="at">legend.outside =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb80-8"><a href="#cb80-8" aria-hidden="true" tabindex="-1"></a>            <span class="at">legend.height =</span> <span class="fl">0.45</span>, </span>
+<span id="cb80-9"><a href="#cb80-9" aria-hidden="true" tabindex="-1"></a>            <span class="at">legend.width =</span> <span class="fl">5.0</span>,</span>
+<span id="cb80-10"><a href="#cb80-10" aria-hidden="true" tabindex="-1"></a>            <span class="at">legend.position =</span> <span class="fu">c</span>(<span class="st">"right"</span>, <span class="st">"bottom"</span>),</span>
+<span id="cb80-11"><a href="#cb80-11" aria-hidden="true" tabindex="-1"></a>            <span class="at">frame =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb80-12"><a href="#cb80-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb80-13"><a href="#cb80-13" aria-hidden="true" tabindex="-1"></a>kpmp<span class="ot">&lt;-</span><span class="fu">tm_shape</span>(nga.localMI) <span class="sc">+</span></span>
+<span id="cb80-14"><a href="#cb80-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="at">col =</span> <span class="st">"Pr.Ii.1"</span>, </span>
+<span id="cb80-15"><a href="#cb80-15" aria-hidden="true" tabindex="-1"></a>          <span class="at">breaks=</span><span class="fu">c</span>(<span class="sc">-</span><span class="cn">Inf</span>, <span class="fl">0.001</span>, <span class="fl">0.01</span>, <span class="fl">0.05</span>, <span class="fl">0.1</span>, <span class="cn">Inf</span>),</span>
+<span id="cb80-16"><a href="#cb80-16" aria-hidden="true" tabindex="-1"></a>          <span class="at">palette=</span><span class="st">"-Blues"</span>, </span>
+<span id="cb80-17"><a href="#cb80-17" aria-hidden="true" tabindex="-1"></a>          <span class="at">title =</span> <span class="st">"local Moran's I p-values (Adaprice Dis)"</span>) <span class="sc">+</span></span>
+<span id="cb80-18"><a href="#cb80-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(<span class="at">legend.outside =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb80-19"><a href="#cb80-19" aria-hidden="true" tabindex="-1"></a>            <span class="at">legend.height =</span> <span class="fl">0.45</span>, </span>
+<span id="cb80-20"><a href="#cb80-20" aria-hidden="true" tabindex="-1"></a>            <span class="at">legend.width =</span> <span class="fl">5.0</span>,</span>
+<span id="cb80-21"><a href="#cb80-21" aria-hidden="true" tabindex="-1"></a>            <span class="at">legend.position =</span> <span class="fu">c</span>(<span class="st">"right"</span>, <span class="st">"bottom"</span>),</span>
+<span id="cb80-22"><a href="#cb80-22" aria-hidden="true" tabindex="-1"></a>            <span class="at">frame =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
+<span id="cb80-23"><a href="#cb80-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>)</span>
+<span id="cb80-24"><a href="#cb80-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb80-25"><a href="#cb80-25" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_arrange</span>(qpmp,kpmp, <span class="at">asp=</span><span class="dv">1</span>, <span class="at">ncol=</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="Take_home_Ex1_files/figure-html/unnamed-chunk-55-1.png" class="img-fluid" width="672"></p>
+</div>
 </div>
 
 
+</section>
+</section>
+</section>
+</section>
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">

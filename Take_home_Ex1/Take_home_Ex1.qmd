@@ -16,9 +16,7 @@ Water is the source of life on the Earth. Clean and accessible water is particul
 
 ## Objectives
 
-The main aim of this project is to use water point related data
-from rural areas at the water point or small water scheme level and
-share the data via WPdx Data Repository. In order to address this complex problem, we focus on **Nigeria** as a study case and analyse the spatial distribution attributes of ***Not Functional Water Point*** in this project.
+The main aim of this project is to use water point related data from rural areas at the water point or small water scheme level and share the data via WPdx Data Repository. In order to address this complex problem, we focus on **Nigeria** as a study case and analyse the spatial distribution attributes of ***Not Functional Water Point*** in this project.
 
 ## 1. Data used
 
@@ -94,13 +92,13 @@ From the description above,
 
 First let us check if there are missing values in the extracted data tables.
 
-```{r}
+```{r eval=FALSE}
 summary(nga[rowSums(is.na(nga))!=0,])
 ```
 
 As we can see the summary information above, there is no missing value in LGA boundary data.
 
-```{r}
+```{r eval=FALSE}
 summary(wp[rowSums(is.na(wp))!=0,])
 ```
 
@@ -121,7 +119,7 @@ wp_nga <- read_rds("geodata/wp_nga.rds") %>%
 
 We take a check at our data tables with *glimpse()* of *dplyr* package.
 
-```{r}
+```{r eval=FALSE}
 glimpse(nga)
 ```
 
@@ -139,7 +137,7 @@ We can see that the table has 774 rows and 6 columns, which are in *character* a
 
 -   *geometry.*
 
-    ```{r}
+    ```{r eval=FALSE}
     glimpse(wp_nga)
     ```
 
@@ -147,7 +145,7 @@ We can see that the table has 95008 rows and 73 columns.
 
 Then let us have a quick look at the geometry of the geospatioal data by using *plot()* and *st_geometry()* of *sf* package.
 
-```{r}
+```{r eval=FALSE}
 plot(st_geometry(nga))
 ```
 
@@ -159,6 +157,8 @@ Then we can display the distribution of the data in *status_cle* field using *fr
 freq(data=wp_nga, 
      input = 'status_cle')
 ```
+
+![](images/000011.png)
 
 From the hist graph, it is shown that ***Functional Water Point*** takes the most portion of **48.29 %** within the *status_cle* field. Next is ***Non-Functional Water Point**,* our objective analysed in this project, which takes **30.93%** in the field.
 
@@ -177,10 +177,12 @@ write_rds(wpt_functional,"geodata/wpt_functional.rds")
 
 We can check the proportion of each attribute in *Functional Water Point* as shown below.
 
-```{r}
+```{r eval=FALSE}
 freq(data=wpt_functional, 
      input = 'status_cle')
 ```
+
+![](images/000010.png)
 
 We then extract *Non-Functional* water point from the whole *status_cle* field, and write the simple feature data table into *rds* files.
 
@@ -197,14 +199,16 @@ write_rds(wpt_nonfunctional,"geodata/wpt_nonfunctional.rds")
 
 We can check the proportion of each attribute in *Non-Functional Water Point* as shown below.
 
-```{r}
+```{r eval=FALSE}
 freq(data=wpt_nonfunctional, 
      input = 'status_cle')
 ```
 
+![](images/000010-01.png)
+
 Now we count the number of *Total,* *Functional* and *Non-Functional* water points at LGA level using *st_intersects()*.
 
-```{r}
+```{r eval=FALSE}
 FC<- lengths(st_intersects(nga, wpt_nonfunctional))
 NFC<- lengths(st_intersects(nga, wpt_functional))
 TL<-lengths(st_intersects(nga, wp_nga))
@@ -212,7 +216,7 @@ TL<-lengths(st_intersects(nga, wp_nga))
 
 We merge the count of *Total Water Point, Functional Water Point* and *Non-Functional Water Point* in polygons with LGA data table *nga* as *nga_wp.*
 
-```{r}
+```{r eval=FALSE}
 nga_wp <- nga %>% 
   mutate(`total wpt` = TL) %>%
   mutate(`wpt functional` = FC) %>%
@@ -247,12 +251,11 @@ ggplot(data=nga_wp,
                  color="black", 
                  fill="light blue") +
   labs(title = "Are non-functional water points even distributed in Nigeria?",
-       subtitle= "There are many planning sub-zones with a single pre-school, on the other hand, \nthere are two planning sub-zones with at least 20 pre-schools",
-      x = "Non-Functional Water points proportion",
+      x = "Non-Functional Water Points Proportion",
       y = "Frequency")
 ```
 
-We can see that
+We can see that the distribution of percentage of non-functional water point is similar to normal distribution, with little skewness.
 
 Spatial distribution of *Non-Functional water points* across the nation is visualized as below.
 
@@ -306,133 +309,14 @@ tmap_arrange(equal,
 
 ### 6 Global Spatial Autocorrelation
 
-Before we can compute the global spatial autocorrelation statistics,
-we need to construct a spatial weights of the study area. Because we have had a quick look that the study area has no isolate districts from the geometry map, there's no reason to drop Contiguity Spatial Weights or Distance Spatial Weights. So we can use both method and compare the results at last.
+Before we can compute the global spatial autocorrelation statistics, we need to construct a spatial weights of the study area. The polygon contiguity method is effective when polygons are similar in size and distribution, and when spatial relationships are a function of polygon proximity.
 
-#### 6.1 Computing Contiguity Based Neighbours
+The **fixed distance method** works well for point data. It is often a good option for polygon data when there is a **large variation** in polygon size.
+Because we have had a quick look at the geometry, the variation in polygon size is quite large, and the distribution of the indicator **is not largely skewed**, so we choose fixed distance matrix.
 
-##### 6.1.1Computing (QUEEN) contiguity based neighbours
+#### 6.1 Computing Contiguity Based on Fixed Distance
 
-The code chunk below is to compute neigbours using Queen's Case.
-
-```{r}
-wm_q <- poly2nb(nga_wp, queen=TRUE)
-summary(wm_q)
-```
-
-The summary report above shows that there are 774 area units in Nigeria.
-The most connected area unit 508 has 14 neighbours. There are two area
-units with only one heighbours.
-
-Let us see the complete nearest neighbors of each polygon by using *str()* as shown below.
-
-```{r}
-str(wm_q)
-```
-
-For each polygon in our polygon object, *wm_q* lists all neighboring polygons. We can check the detail of the number 508 polygon:
-
-```{r}
-wm_q[[508]]
-```
-
-The ID of the number 508 district can be check by below code chunk.
-
-```{r}
-nga_wp$shapeName[508]
-```
-
-The output reveals that Polygon ID=508 is Mokwa.
-
-We can retrieve the percentage of non-functional water points of this district 's neighbours by using the code chunk below.
-
-```{r}
-nb1 <- wm_q[[508]]
-nb1 <- nga_wp$`pct_non-functional`[nb1]
-nb1
-```
-
-The printed output above shows that the pct_nonfunctional of the 14 nearest neighbours based on Queen\'s method are 0.053763, 0.8755187and
-so on.
-
-##### 6.1.2 Computing (ROOK) contiguity based neighbours
-
-The code chunk below is to compute neigbours using Queen's Case.
-
-```{r}
-wm_r <- poly2nb(nga_wp, queen=FALSE)
-summary(wm_r)
-```
-
-The summary report above shows the most connected area unit 508 has 14 neighbours. There are two area units with only one heighbours.
-
-Let us see the complete nearest neighbors of each polygon by using *str()* as shown below.
-
-```{r}
-str(wm_r)
-```
-
-##### 6.1.3 Visualizing Contiguity Weights
-
-A connectivity graph takes a point and displays a line to each
-neighboring point. We are working with polygons, so we
-will need to get centroid point in order to make our connectivity graphs. To get our longitude values we map the *st_centroid* function over the
-geometry column and access the longitude value through
-double bracket notation \[\[\]\] and 1.
-
-```{r}
-longitude <- map_dbl(nga_wp$geometry, ~st_centroid(.x)[[1]])
-```
-
-We do the same for latitude with one key difference. We access the second value per each centroid with \[\[2\]\].
-
-```{r}
-latitude <- map_dbl(nga_wp$geometry, ~st_centroid(.x)[[2]])
-```
-
-Now that we have latitude and longitude, we use cbind to put longitude and latitude into the same object.
-
-```{r}
-coords <- cbind(longitude, latitude)
-```
-
-We check the first few observations to see if things are formatted correctly.
-
-```{r}
-head(coords)
-```
-
-Now we can plot the Queen Contiguity based on neighbor map.
-
-```{r}
-par(mfrow=c(1,2))
-plot(nga_wp$geometry, border="lightgrey")
-plot(wm_q, coords, pch = 19, cex = 0.6, add = TRUE, col= "red", main="Queen Contiguity")
-plot(nga_wp$geometry, border="lightgrey")
-plot(wm_r, coords, pch = 19, cex = 0.6, add = TRUE, col = "red", main="Rook Contiguity")
-```
-
-Next, we need to assign weights to each neighboring polygon based both on ***Queen*** and ***Rook***. In our case, each neighboring polygon will be assigned equal weight (style=\"W\").
-
-```{r}
-rswm_q <- nb2listw(wm_q, 
-                   style="W", 
-                   zero.policy = TRUE)
-print(rswm_q,  zero.policy = TRUE)
-
-rswm_r <- nb2listw(wm_r, 
-                   style="W", 
-                   zero.policy = TRUE)
-print(rswm_r,  zero.policy = TRUE)
-```
-
-The result is quite similar to Queen's case, we can only choose Queen's to do subsequent analysis.
-
-#### 6.2 Computing Contiguity Based on Adaptive Distance
-
-As we can see from the geometry, areas of polygons of sub-districts are quite different, some of them being very small. Therefore, if we use fixed distance weight matrix, some nearest neighbours cannot be included for polygons with small area.
-
-##### 6.2.1 Determine the cut-off distance
+##### 6.1.1 Determine the cut-off distance
 
 Firstly, we need to determine the upper limit for distance band by using the steps below:
 
@@ -450,46 +334,52 @@ k1dists <- unlist(nbdists(k1, coords, longlat = TRUE))
 summary(k1dists)
 ```
 
-The summary report shows that the largest first nearest neighbour
-distance is **71.661 km**, so using this as the upper threshold gives
-certainty that all units will have at least one neighbour.
+The summary report shows that the largest nearest neighbour distance is **71.661 km**, and the least nearest neighbour distance is **2.662 km,** so using this as the upper threshold gives certainty that all units will have at least one neighbour.
 
-##### 6.2.2  Computing adaptive distance weight matrix
+##### 6.1.2 Computing fixed distance weight matrix
 
-As shown in the code chunk below, we can control the numbers of neighbours directly using k-nearest neighbours, either accepting asymmetric neighbours or imposing symmetry. Commonly, we start from **8** neighbours.
+Now, we will compute the distance weight matrix by using *dnearneigh()* as shown in the code chunk below.
 
 ```{r}
-knn8 <- knn2nb(knearneigh(coords, k=8))
-knn8
+wm_d72 <- dnearneigh(coords, 0, 72, longlat = TRUE)
+wm_d72
 ```
 
 We can display the content of the matrix by using *str()*.
 
 ```{r}
-str(knn8)
+str(wm_d72)
 ```
 
-Notice that each county has 8 neighbours, no less no more!
+We can also display the structure of the weight matrix by combining [*table()*](https://www.rdocumentation.org/packages/base/versions/3.6.2/topics/table) and [*card()*](https://r-spatial.github.io/spdep/reference/card.html) of spdep.
 
-##### 6.2.3  Plotting distance based neighbours
+```{r}
+table(nga_wp$shapeName, card(wm_d72))
+```
+
+##### 6.1.3 Plotting distance based neighbours
 
 Let us now plot the weight matrix using the code chunk below.
 
 ```{r}
 plot(nga_wp$geometry, border="lightgrey")
-plot(knn8, coords, pch = 19, cex = 0.6, add = TRUE, col = "red")
+plot(wm_d72,add=TRUE, coords)
+plot(k1, coords, add=TRUE, col="red", length=0.08)
 ```
 
-Next, we need to assign weights to each neighboring polygon based both on *Adaptive Distance*. In our case, each neighboring polygon will be assigned equal weight (style=\"W\").
+The red lines show the links of 1st nearest neighbours and the black
+lines show the links of neighbours within the cut-off distance of 72km.
+
+Next, we need to assign weights to each neighboring polygon based both on *Adaptive Distance*. In our case, each neighboring polygon will be assigned equal weight (style="W").
 
 ```{r}
-rswm_k <- nb2listw(knn8, 
+rswm_f <- nb2listw(wm_d72, 
                    style="W", 
                    zero.policy = TRUE)
-print(rswm_k,  zero.policy = TRUE)
+print(rswm_f,  zero.policy = TRUE)
 ```
 
-#### 6.3 Global Spatial Autocorrelation Test
+#### 6.2 Global Spatial Autocorrelation Test
 
 The Null Hypothesis for Spatial Randomness:
 
@@ -505,66 +395,41 @@ The Null Hypothesis for Spatial Randomness:
 
 -   Geary's C Test
 
-##### 6.3.1 Moran's I Test
+##### 6.2.1 Moran's I Test
 
-The code chunk below performs Moran\'s I statistical testing using [*moran.test()*](https://r-spatial.github.io/spdep/reference/moran.test.html) of **spdep**.
-
--   Based on Queen's case:
+The code chunk below performs Moran's I statistical testing using [*moran.test()*](https://r-spatial.github.io/spdep/reference/moran.test.html) of **spdep**.
 
 ```{r}
 moran.test(nga_wp$`pct_non-functional`, 
-           listw=rswm_q, 
-           zero.policy = TRUE, 
-           na.action=na.omit)
-```
-
--   Based on Adaptive Distance:
-
-```{r}
-moran.test(nga_wp$`pct_non-functional`, 
-           listw=rswm_k, 
+           listw=rswm_f, 
            zero.policy = TRUE, 
            na.action=na.omit)
 ```
 
 From the summary of the test result, we can see that the **p-value** is less than **0.05**, which means we have evident reasons to reject the Null Hypothesis that the percentage of Non-Functional water point is randomly distributed across the country.
 
-##### 6.3.2 Computing Monte Carlo Moran\'s I
+##### 6.2.2 Computing Monte Carlo Moran's I
 
 We already get the result of the Moran's I Test, but we can confirm the test by simulating Monte Carlo.
 
--   Based on Queen's case:
-
 ```{r}
 set.seed(1234)
 bperm= moran.mc(nga_wp$`pct_non-functional`, 
-                listw=rswm_q, 
+                listw=rswm_f, 
                 nsim=999, 
                 zero.policy = TRUE, 
                 na.action=na.omit)
 bperm
 ```
 
--   Based on Adaptive Distance:
+From the summary of the test result, we can see that the **p-value** is **0.001,** still less than **0.05**, which means we have evident reasons to reject the Null Hypothesis that the percentage of Non-Functional water point is randomly distributed across the country. And the **statistic = 0.48857 \>0.** For the **I statistic,** if it is positive (I\>0): Clustered, observations tend to be similar;
 
-```{r}
-set.seed(1234)
-bperm= moran.mc(nga_wp$`pct_non-functional`, 
-                listw=rswm_k, 
-                nsim=999, 
-                zero.policy = TRUE, 
-                na.action=na.omit)
-bperm
-```
+##### 6.2.3 Geary's C Test
 
-From the summary of the test result, we can see that the **p-value** is **0.001,** still less than **0.05**, which means we have evident reasons to reject the Null Hypothesis that the percentage of Non-Functional water point is randomly distributed across the country. And the **statistic = 0.5...\>0.** For the **I statistic,** if it is positive (I\>0): Clustered, observations tend to be similar;
+The code chunk below performs Geary's C test for spatial autocorrelation by using [*geary.test()*](https://r-spatial.github.io/spdep/reference/geary.test.html) of **spdep**.
 
-##### 6.3.3 Geary's C Test
-
-The code chunk below performs Geary\'s C test for spatial autocorrelation by using [*geary.test()*](https://r-spatial.github.io/spdep/reference/geary.test.html) of **spdep**.
-
-```{r}
-geary.test(nga_wp$`pct_non-functional`, listw=rswm_q, zero.policy = TRUE)
+```{r eval=FALSE}
+geary.test(nga_wp$`pct_non-functional`, listw=rswm_f, zero.policy = TRUE)
 ```
 
 The code chunk above says we have NA in the column *pct_non-functinal.* We should check the NA in the original data table. As the snippet shows, there are some percentage becomes *NaN* because the *total wpt* is 0. We should recode these NA as 0.![](images/tempsnip.png)
@@ -573,75 +438,47 @@ The code chunk above says we have NA in the column *pct_non-functinal.* We shoul
 nga_wp <- nga_wp %>%
   mutate(pct_functional = replace_na(pct_functional,0))%>%
   mutate(`pct_non-functional`=replace_na(`pct_non-functional`,0))
+
+write_rds(nga_wp,"geodata/nga_wp.rds")
 ```
 
 Now we can do the Geary's C test:
 
--   Based on Queen's case:
-
 ```{r}
-geary.test(nga_wp$`pct_non-functional`, listw=rswm_q, zero.policy = TRUE)
+geary.test(nga_wp$`pct_non-functional`, listw=rswm_f, zero.policy = TRUE)
 ```
 
--   Based on Adaptive Distance:
+From the summary of the test result, we can see that the **p-value** is less than **0.05**, which means we have evident reasons to reject the Null Hypothesis that the percentage of Non-Functional water point is randomly distributed across the country. The **Geary C statistic = 0.5091973810 \< 1.**
 
-```{r}
-geary.test(nga_wp$`pct_non-functional`, listw=rswm_k, zero.policy = TRUE)
-```
+##### 6.2.4 Computing Monte Carlo Geary's C
 
-From the summary of the test result, we can see that the **p-value** is less than **0.05**, which means we have evident reasons to reject the Null Hypothesis that the percentage of Non-Functional water point is randomly distributed across the country. The **Geary C statistic = 0.4... \< 1.**
-
-##### 6.3.4 Computing Monte Carlo Geary's C
-
-The code chunk below performs permutation test for Geary\'s C statistic by using [*geary.mc()*](https://r-spatial.github.io/spdep/reference/geary.mc.html) of **spdep**.
-
--   Based on Queen's case:
+The code chunk below performs permutation test for Geary's C statistic by using [*geary.mc()*](https://r-spatial.github.io/spdep/reference/geary.mc.html) of **spdep**.
 
 ```{r}
 set.seed(1234)
 bperm=geary.mc(nga_wp$`pct_non-functional`, 
-               listw=rswm_q, zero.policy = TRUE,
+               listw=rswm_f, zero.policy = TRUE,
                nsim=999)
 bperm
 ```
 
--   Based on Adaptive Distance:
+From the summary of the test result, we can see that the **p-value** is **0.001,** still less than **0.05**, which means we have evident reasons to reject the Null Hypothesis that the percentage of Non-Functional water point is randomly distributed across the country. And the **statistic = 0.5092 \< 1.** For the **c statistic,** if it is Small c value (\<1) : Clustered, observations tend to be similar.
 
-```{r}
-set.seed(1234)
-bperm=geary.mc(nga_wp$`pct_non-functional`, 
-               listw=rswm_k, zero.policy = TRUE,
-               nsim=999)
-bperm
-```
+#### 6.3 Clusters and Outliers Analysis
 
-From the summary of the test result, we can see that the **p-value** is **0.001,** still less than **0.05**, which means we have evident reasons to reject the Null Hypothesis that the percentage of Non-Functional water point is randomly distributed across the country. And the **statistic = 0.4... \< 1.** For the **c statistic,** if it is Small c value (\<1) : Clustered, observations tend to be similar.
+##### 6.3.1 Computing local Moran's I
 
-#### 6.4 Clusters and Outliers Analysis
-
-##### 6.4.1 Computing local Moran\'s I
-
-The code chunks below are used to compute local Moran\'s I of *pct_non-functional* at the ADM2 level.
-
--   Based on Queen's case:
+The code chunks below are used to compute local Moran's I of *pct_non-functional* at the ADM2 level.
 
 ```{r}
 fips <- order(nga_wp$shapeName)
-localMI1 <- localmoran(nga_wp$`pct_non-functional`, rswm_q,zero.policy = TRUE)
-head(localMI)
-```
-
--   Based on Adaptive Distance:
-
-```{r}
-fips <- order(nga_wp$shapeName)
-localMI2 <- localmoran(nga_wp$`pct_non-functional`, rswm_k,zero.policy = TRUE)
+localMI <- localmoran(nga_wp$`pct_non-functional`, rswm_f,zero.policy = TRUE)
 head(localMI)
 ```
 
 *localmoran()* function returns a matrix of values whose columns are:
 
--   Ii: the local Moran\'s I statistics
+-   Ii: the local Moran's I statistics
 
 -   E.Ii: the expectation of local moran statistic under the randomisation hypothesis
 
@@ -651,77 +488,203 @@ head(localMI)
 
 -   Pr(): the p-value of local moran statistic
 
-##### 6.4.2 Mapping the local Moran\'s I
+##### 6.3.2 Mapping the local Moran's I
 
-Before mapping the local Moran\'s I map, it is wise to append the
-local Moran\'s I dataframe (i.e. localMI) onto nga_wp
-SpatialPolygonDataFrame. The code chunks below can be used to perform
-the task. The out SpatialPolygonDataFrame is called *nga_wp.localMI*.
+Before mapping the local Moran's I map, it is wise to append the local Moran's I dataframe (i.e. localMI) onto nga_wp SpatialPolygonDataFrame. The code chunks below can be used to perform the task. The out SpatialPolygonDataFrame is called *nga_wp.localMI*.
 
 ```{r}
-nga.localMI <- cbind(nga_wp,localMI1,localMI2)%>%
-  rename(Pr.Ii = Pr.z....E.Ii..)%>%
-  rename(Pr.Ii.1 = Pr.z....E.Ii...1)
+nga.localMI <- cbind(nga_wp,localMI)%>%
+  rename(Pr.Ii = Pr.z....E.Ii..)
 ```
 
 ```{r}
-qlocmp<-tm_shape(nga.localMI) +
+tm_shape(nga.localMI) +
   tm_fill(col = "Ii", 
           style = "pretty",
           palette = "RdBu",
-          title = "local moran statistics (QUEEN)") +
+          title = "local moran statistics") +
   tm_borders(alpha = 0.5) +
   tm_layout(legend.outside = TRUE,
             legend.height = 0.45, 
             legend.width = 5.0,
             legend.position = c("right", "bottom"),
             frame = FALSE)
-
-klocmp<-tm_shape(nga.localMI) +
-  tm_fill(col = "Ii.1", 
-          style = "pretty",
-          palette = "RdBu",
-          title = "local moran statistics (Adaptive Dis)") +
-  tm_borders(alpha = 0.5) +
-  tm_layout(legend.outside = TRUE,
-            legend.height = 0.45, 
-            legend.width = 5.0,
-            legend.position = c("right", "bottom"),
-            frame = FALSE)
-
-tmap_arrange(qlocmp,klocmp, asp=1, ncol=2)
 ```
 
-##### 6.4.3 Mapping the local Moran\'s p-values
+The plot above shows that the regions of the top right of the country in blue has the most positive clusters, meaning percentage of non-functional water points in these regions are quite similar. Regions in pink have negative correlations, meaning percentage of non-functional water points in these regions are quite discrete.
 
-The choropleth shows there is evidence for both positive and negative
-Ii values. However, it is useful to consider the p-values for each of
-these values, as consider above.
+##### 6.3.3 Mapping the local Moran's p-values
+
+The choropleth shows there is evidence for both positive and negative Ii values. However, it is useful to consider the p-values for each of these values, as consider above.
 
 ```{r}
-qpmp<-tm_shape(nga.localMI) +
+tm_shape(nga.localMI) +
   tm_fill(col = "Pr.Ii", 
           breaks=c(-Inf, 0.001, 0.01, 0.05, 0.1, Inf),
           palette="-Blues", 
-          title = "local Moran's I p-values (QUEEN)") +
+          title = "local Moran's I p-values") +
   tm_borders(alpha = 0.5) +
   tm_layout(legend.outside = TRUE,
             legend.height = 0.45, 
             legend.width = 5.0,
             legend.position = c("right", "bottom"),
             frame = FALSE)
+```
 
-kpmp<-tm_shape(nga.localMI) +
-  tm_fill(col = "Pr.Ii.1", 
-          breaks=c(-Inf, 0.001, 0.01, 0.05, 0.1, Inf),
-          palette="-Blues", 
-          title = "local Moran's I p-values (Adaprice Dis)") +
-  tm_layout(legend.outside = TRUE,
-            legend.height = 0.45, 
-            legend.width = 5.0,
-            legend.position = c("right", "bottom"),
-            frame = FALSE) +
+##### 6.3.4 Creating a LISA Cluster Map
+
+The LISA Cluster Map shows the significant locations color coded by
+type of spatial autocorrelation. The first step before we can generate
+the LISA cluster map is to plot the Moran scatterplot.
+
+###### 6.3.4.1  Plotting Moran scatterplot
+
+```{r}
+nci<- moran.plot(nga_wp$`pct_non-functional`, rswm_f,
+                  labels=as.character(nga_wp$shapeName),
+                  zero.policy = TRUE,
+                  xlab="Pct non-functional", 
+                  ylab="Sptially Lag Pct non-functional")
+```
+
+Notice that the plot is split in 4 quadrants. The top right corner
+belongs to areas that have high percentage of non-functional water point and are surrounded by other areas that have the average level of pct_non-functional, i.e. the high-high locations.
+
+###### 6.3.4.2  Plotting Moran scatterplot with standardised variable
+
+First we will use [*scale()*](https://www.rdocumentation.org/packages/base/versions/3.6.2/topics/scale) to centers and scales the variable. Here centering is done by subtracting the mean (omitting NAs) the corresponding columns, and scaling is done by dividing the (centered) variable by their standard
+deviations.
+
+```{r}
+nga_wp$z.pctnon <- scale(nga_wp$`pct_non-functional`) %>% 
+  as.vector 
+```
+
+Now, we are ready to plot the Moran scatterplot again by using the code chunk below.
+
+```{r}
+nci2 <- moran.plot(nga_wp$z.pctnon, rswm_f,
+                  labels=as.character(nga_wp$shapeName),
+                  zero.policy = TRUE,
+                  xlab="Pct non-functional", 
+                  ylab="Sptially Lag Pct non-functional")
+```
+
+###### 
+6.3.4.3 Preparing LISA map classes
+
+The code chunks below show the steps to prepare a LISA cluster map.
+
+```{r}
+quadrant <- vector(mode="numeric",length=nrow(localMI))
+```
+
+Next, derives the spatially lagged variable (pct_non-functional) and centers the spatially lagged variable around its mean.
+
+```{r}
+nga_wp$lag_pctnon <- lag.listw(rswm_f, nga_wp$`pct_non-functional`,zero.policy = TRUE)
+DV <- nga_wp$lag_pctnon - mean(nga_wp$lag_pctnon)     
+```
+
+This is follow by centering the local Moran\'s around the mean.
+
+```{r}
+LM_I <- localMI[,1] - mean(localMI[,1])    
+```
+
+We will set a statistical significance level as 95% for the local Moran.
+
+```{r}
+signif <- 0.05       
+```
+
+These four command lines define the low-low (1), low-high (2), high-low (3) and high-high (4) categories.
+
+```{r}
+quadrant[DV <0 & LM_I>0] <- 1
+quadrant[DV >0 & LM_I<0] <- 2
+quadrant[DV <0 & LM_I<0] <- 3  
+quadrant[DV >0 & LM_I>0] <- 4      
+```
+
+Lastly, places non-significant Moran in the category 0.
+
+```{r}
+quadrant[localMI[,5]>signif] <- 0
+```
+
+##### 6.3.5 Plotting LISA map
+
+Now, we can build the LISA map by using the code chunks below.
+
+```{r}
+nga.localMI$quadrant <- quadrant
+colors <- c("#ffffff", "#2c7bb6", "#abd9e9", "#fdae61", "#d7191c")
+clusters <- c("insignificant", "low-low", "low-high", "high-low", "high-high")
+
+tm_shape(nga.localMI) +
+  tm_fill(col = "quadrant", 
+          style = "cat", 
+          palette = colors[c(sort(unique(quadrant)))+1], 
+          labels = clusters[c(sort(unique(quadrant)))+1],
+          popup.vars = c("")) +
+  tm_view(set.zoom.limits = c(11,17)) +
+  tm_borders(alpha=0.5)
+```
+
+The map above shows that percentages of non-functional water points in areas in red are high and clustered; percentages in deep blue are low and sparsed; percentages in light blue are low outliers among high neighbours; percentages in orange are high outliers among low neighbours.
+
+### 7.  Hot Spot and Cold Spot Area Analysis
+
+Beside detecting cluster and outliers, localised spatial statistics can be also used to detect hot spot and/or cold spot areas. Spatial statistics to detect spatial anomalies is the Getis and Ord\'s G-statistics
+
+The analysis consists of three steps:
+
+-   Deriving spatial weight matrix
+
+-   Computing Gi statistics
+
+-   Mapping Gi statistics
+
+#### 7.1 Gi statistics using fixed distance
+
+First, *nb2listw()* is used to convert the nb object into spatial weights object. Because we produce *wm_d72* with *style-"W",* we still use W to convert the object.
+
+```{r}
+wm72_lw <- nb2listw(wm_d72, style = 'W')
+summary(wm72_lw)
+```
+
+From the summary above, we can see 5 regions have least neighbour of 1, and 1 region has most neighbours of 70. Then we compute the Gi statistics with below code chunk.
+
+```{r}
+fips <- order(nga_wp$shapeName)
+gi.fixed <- localG(nga_wp$`pct_non-functional`, wm72_lw)
+gi.fixed
+```
+
+Next, we join the Gi values to their corresponding sf data frame by using the code chunk below.
+
+```{r}
+nga.gi <- cbind(nga_wp, as.matrix(gi.fixed)) %>%
+  rename(gstat_fixed = as.matrix.gi.fixed.)
+```
+
+#### 7.2 Mapping Gi values with fixed distance weight
+
+The code chunk below shows the functions used to map the Gi values derived using fixed distance weight matrix.
+
+```{r}
+rmp <- qtm(nga_wp,"pct_non-functional")
+
+Gimap <-tm_shape(nga.gi) +
+  tm_fill(col = "gstat_fixed", 
+          style = "pretty",
+          palette="-RdBu",
+          title = "local Gi") +
   tm_borders(alpha = 0.5)
 
-tmap_arrange(qpmp,kpmp, asp=1, ncol=2)
+tmap_arrange(rmp, Gimap, asp=1, ncol=2)
 ```
+
+From figures above, it is shown that areas in the north of the country, more specifically areas in red, is a cluster of high values of percentage of non-functional water point; while areas in the south and north east of the country, more specifically areas in deep blue, are the opposite of clusters with low values of percentage of non-functional water point.
