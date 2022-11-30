@@ -42,8 +42,10 @@ In this project, packages below are used to facilitate our analysis.
 
 -   funModeling
 
+-   knitr
+
     ```{r}
-    pacman::p_load(sf,tidyverse,tmap,spdep,funModeling)
+    pacman::p_load(sf,tidyverse,tmap,spdep,funModeling,knitr)
     ```
 
 ## 3. Importing data into R environment
@@ -410,18 +412,66 @@ plot(nga_wp$geometry, border="lightgrey")
 plot(wm_r, coords, pch = 19, cex = 0.6, add = TRUE, col = "red", main="Rook Contiguity")
 ```
 
-#### 6.2 Computing Distance Based Neighbours
-
-Next, we need to assign weights to each neighboring polygon. In our
-case, each neighboring polygon will be assigned equal weight
-(style=\"B\"), where "B" means basic binary matrix. This is accomplished by assigning the fraction 1/(#ofneighbors) to each neighboring county then summing the weighted income values. The *zero policy* is set to TRUE, weights vectors of zero length are inserted for regions without neighbour in the neighbours list.
+Next, we need to assign weights to each neighboring polygon based both on ***Queen*** and ***Rook***. In our case, each neighboring polygon will be assigned equal weight
+(style=\"W\").
 
 ```{r}
 rswm_q <- nb2listw(wm_q, 
                    style="W", 
                    zero.policy = TRUE)
 print(rswm_q,  zero.policy = TRUE)
+
+rswm_r <- nb2listw(wm_r, 
+                   style="W", 
+                   zero.policy = TRUE)
+print(rswm_r,  zero.policy = TRUE)
 ```
+
+#### 6.2 Computing Contiguity Based on Adaptive Distance
+
+As we can see from the geometry, areas of polygons of sub-districts are quite different, some of them being very small. Therefore, if we use fixed distance weight matrix, some nearest neighbours cannot be included for polygons with small area.
+
+##### 6.2.1 Determine the cut-off distance
+
+Firstly, we need to determine the upper limit for distance band by using the steps below:
+
+-   Return a matrix with the indices of points belonging to the set of the k nearest neighbours of each other by using [*knearneigh()*](https://r-spatial.github.io/spdep/reference/knearneigh.html) of **spdep**.
+
+-   Convert the knn object returned by *knearneigh()* into a neighbours list of class nb with a list of integer vectors containing neighbour region number ids by using [*knn2nb()*](https://r-spatial.github.io/spdep/reference/knn2nb.html).
+
+-   Return the length of neighbour relationship edges by using [*nbdists()*](https://r-spatial.github.io/spdep/reference/nbdists.html) of **spdep**. The function returns in the units of the coordinates if the coordinates are projected, in km otherwise.
+
+Remove the list structure of the returned object by using [**unlist()**](https://www.rdocumentation.org/packages/base/versions/3.6.2/topics/unlist).
+
+```{r}
+k1 <- knn2nb(knearneigh(coords))
+k1dists <- unlist(nbdists(k1, coords, longlat = TRUE))
+summary(k1dists)
+```
+
+The summary report shows that the largest first nearest neighbour
+distance is **71.661 km**, so using this as the upper threshold gives
+certainty that all units will have at least one neighbour.
+
+##### 6.2.2  Computing adaptive distance weight matrix
+
+As shown in the code chunk below, we can control the numbers of neighbours directly using k-nearest neighbours, either accepting asymmetric neighbours or imposing symmetry. Commonly, we start from **8** neighbours.
+
+```{r}
+knn6 <- knn2nb(knearneigh(coords, k=8))
+knn6
+```
+
+We can display the content of the matrix by using *str()*.
+
+```{r}
+str(knn6)
+```
+
+Notice that each county has six neighbours, no less no more!
+
+
+
 
 #### 6.3 Global Spatial Autocorrelation Test
 
@@ -457,9 +507,57 @@ From the summary of the test result, we can see that the **p-value** is less tha
 We already get the result of the Moran's I Test, but we can confirm the test by simulating Monte Carlo.
 
 ```{r}
-
+set.seed(1234)
+bperm= moran.mc(nga_wp$`pct_non-functional`, 
+                listw=rswm_q, 
+                nsim=999, 
+                zero.policy = TRUE, 
+                na.action=na.omit)
+bperm
 ```
 
-Now we should analyse the exact pattern for the Non-Functional water point.
+From the summary of the test result, we can see that the **p-value** is **0.001,** still less than **0.05**, which means we have evident reasons to reject the Null Hypothesis that the percentage of Non-Functional water point is randomly distributed across the country. And the **statistic = 0.5539\>0.** For the **I statistic,** if it is positive (I\>0): Clustered, observations tend to be similar;
 
-##### 
+##### 6.3.3 Geary's C Test
+
+The code chunk below performs Geary\'s C test for spatial autocorrelation by using [*geary.test()*](https://r-spatial.github.io/spdep/reference/geary.test.html) of **spdep**.
+
+```{r}
+geary.test(nga_wp$`pct_non-functional`, listw=rswm_q, zero.policy = TRUE)
+```
+
+The code chunk above says we have NA in the column *pct_non-functinal.* We should check the NA in the original data table. As the snippet shows, there are some percentage becomes *NaN* because the *total wpt* is 0. We should recode these NA as 0.![](images/tempsnip.png)
+
+```{r}
+nga_wp <- nga_wp %>%
+  mutate(pct_functional = replace_na(pct_functional,0))%>%
+  mutate(`pct_non-functional`=replace_na(`pct_non-functional`,0))
+```
+
+Now we can do the Geary's C test:
+
+```{r}
+geary.test(nga_wp$`pct_non-functional`, listw=rswm_q, zero.policy = TRUE)
+```
+
+From the summary of the test result, we can see that the **p-value** is less than **0.05**, which means we have evident reasons to reject the Null Hypothesis that the percentage of Non-Functional water point is randomly distributed across the country. The **Geary C statistic = 0.4489704923 \< 1.**
+
+##### 6.3.4 Computing Monte Carlo Geary's C
+
+The code chunk below performs permutation test for Geary\'s C statistic by using [*geary.mc()*](https://r-spatial.github.io/spdep/reference/geary.mc.html) of **spdep**.
+
+```{r}
+set.seed(1234)
+bperm=geary.mc(nga_wp$`pct_non-functional`, 
+               listw=rswm_q, zero.policy = TRUE,
+               nsim=999)
+bperm
+```
+
+From the summary of the test result, we can see that the **p-value** is **0.001,** still less than **0.05**, which means we have evident reasons to reject the Null Hypothesis that the percentage of Non-Functional water point is randomly distributed across the country. And the **statistic = 0.44897 \< 1.** For the **c statistic,** if it is Small c value (\<1) : Clustered, observations tend to be similar.
+
+
+
+
+
+
