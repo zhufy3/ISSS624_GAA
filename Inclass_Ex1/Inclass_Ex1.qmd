@@ -1,5 +1,10 @@
 ---
 title: "Spatial Weights and Applications"
+author: Fangyuan ZHU
+execute: 
+  warning: false
+  message: false
+format: html
 editor: visual
 ---
 

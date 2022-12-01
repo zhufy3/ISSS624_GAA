@@ -1,5 +1,5 @@
 ---
-title: "Inclass Exercise 2"
+title: "Take Home Exercise 1"
 author: Fangyuan ZHU
 execute: 
   warning: false
@@ -8,7 +8,7 @@ format: html
 editor: visual
 ---
 
-# Geospatial Analysis for water points in Nigeria
+# Geospatial Analysis for Water Points in Nigeria
 
 ## Background of the analysis
 
@@ -290,8 +290,6 @@ tmap_arrange(equal,
              asp=1, 
              ncol=2)
 ```
-
-![](images/000012.png)
 
 ### 6 Global Spatial Autocorrelation
 
