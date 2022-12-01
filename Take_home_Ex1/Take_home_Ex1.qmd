@@ -149,6 +149,8 @@ Then let us have a quick look at the geometry of the geospatioal data by using *
 plot(st_geometry(nga))
 ```
 
+![](images/000005.png)
+
 #### 4.2.2 Distribution of The Data in *status_cle* Field
 
 Then we can display the distribution of the data in *status_cle* field using *freq().*
@@ -172,7 +174,6 @@ wpt_functional <- wp_nga %>%
            c("Functional", 
              "Functional but needs repair",
              "Functional but not in use"))
-write_rds(wpt_functional,"geodata/wpt_functional.rds")
 ```
 
 We can check the proportion of each attribute in *Functional Water Point* as shown below.
@@ -194,7 +195,6 @@ wpt_nonfunctional <- wp_nga %>%
              "Non-Functional",
              "Non functional due to dry season",
              "Non-Functional due to dry season"))
-write_rds(wpt_nonfunctional,"geodata/wpt_nonfunctional.rds")
 ```
 
 We can check the proportion of each attribute in *Non-Functional Water Point* as shown below.
@@ -257,22 +257,6 @@ ggplot(data=nga_wp,
 
 We can see that the distribution of percentage of non-functional water point is similar to normal distribution, with little skewness.
 
-Spatial distribution of *Non-Functional water points* across the nation is visualized as below.
-
-```{r}
-wpt_nonfunctional<-read_rds("geodata/wpt_nonfunctional.rds")
-tmap_mode("plot")
-tm_shape(st_geometry(nga_wp)) +
-  tm_borders(alpha = 0.5) +
-  tmap_options(check.and.fix = TRUE) +
-tm_shape(wpt_nonfunctional) +
-  tm_dots(col="red", size=0.05) +
-  tm_layout(main.title = "Non-Functional Water Point",
-          main.title.position = "center",
-          main.title.size = 1.2,
-          frame = TRUE)
-```
-
 Now, we are going to prepare a basemap and a choropleth map showing the distribution of *Non-Functional* water point by using *qtm()* of **tmap** package.
 
 ```{r}
@@ -307,12 +291,13 @@ tmap_arrange(equal,
              ncol=2)
 ```
 
+![](images/000012.png)
+
 ### 6 Global Spatial Autocorrelation
 
 Before we can compute the global spatial autocorrelation statistics, we need to construct a spatial weights of the study area. The polygon contiguity method is effective when polygons are similar in size and distribution, and when spatial relationships are a function of polygon proximity.
 
-The **fixed distance method** works well for point data. It is often a good option for polygon data when there is a **large variation** in polygon size.
-Because we have had a quick look at the geometry, the variation in polygon size is quite large, and the distribution of the indicator **is not largely skewed**, so we choose fixed distance matrix.
+The **fixed distance method** works well for point data. It is often a good option for polygon data when there is a **large variation** in polygon size. Because we have had a quick look at the geometry, the variation in polygon size is quite large, and the distribution of the indicator **is not largely skewed**, so we choose fixed distance matrix.
 
 #### 6.1 Computing Contiguity Based on Fixed Distance
 
@@ -367,8 +352,7 @@ plot(wm_d72,add=TRUE, coords)
 plot(k1, coords, add=TRUE, col="red", length=0.08)
 ```
 
-The red lines show the links of 1st nearest neighbours and the black
-lines show the links of neighbours within the cut-off distance of 72km.
+The red lines show the links of 1st nearest neighbours and the black lines show the links of neighbours within the cut-off distance of 72km.
 
 Next, we need to assign weights to each neighboring polygon based both on *Adaptive Distance*. In our case, each neighboring polygon will be assigned equal weight (style="W").
 
@@ -422,7 +406,7 @@ bperm= moran.mc(nga_wp$`pct_non-functional`,
 bperm
 ```
 
-From the summary of the test result, we can see that the **p-value** is **0.001,** still less than **0.05**, which means we have evident reasons to reject the Null Hypothesis that the percentage of Non-Functional water point is randomly distributed across the country. And the **statistic = 0.48857 \>0.** For the **I statistic,** if it is positive (I\>0): Clustered, observations tend to be similar;
+From the summary of the test result, we can see that the **p-value** is **0.001,** still less than **0.05**, which means we have evident reasons to reject the Null Hypothesis that the percentage of Non-Functional water point is randomly distributed across the country. And the **statistic = 0.48857 \>0.** For the **I statistic,** if it is positive (I\>0): Clustered, observations tend to be similar.
 
 ##### 6.2.3 Geary's C Test
 
@@ -531,13 +515,13 @@ tm_shape(nga.localMI) +
             frame = FALSE)
 ```
 
+The figure above shows clearly regions having distinct cluster or outlier patterns, instead of randomly distributed one. Regions in more deep color, the cluster or outlier pattern is more significant.
+
 ##### 6.3.4 Creating a LISA Cluster Map
 
-The LISA Cluster Map shows the significant locations color coded by
-type of spatial autocorrelation. The first step before we can generate
-the LISA cluster map is to plot the Moran scatterplot.
+The LISA Cluster Map shows the significant locations color coded by type of spatial autocorrelation. The first step before we can generate the LISA cluster map is to plot the Moran scatterplot.
 
-###### 6.3.4.1  Plotting Moran scatterplot
+###### 6.3.4.1 Plotting Moran scatterplot
 
 ```{r}
 nci<- moran.plot(nga_wp$`pct_non-functional`, rswm_f,
@@ -547,13 +531,11 @@ nci<- moran.plot(nga_wp$`pct_non-functional`, rswm_f,
                   ylab="Sptially Lag Pct non-functional")
 ```
 
-Notice that the plot is split in 4 quadrants. The top right corner
-belongs to areas that have high percentage of non-functional water point and are surrounded by other areas that have the average level of pct_non-functional, i.e. the high-high locations.
+Notice that the plot is split in 4 quadrants. The top right corner belongs to areas that have high percentage of non-functional water point and are surrounded by other areas that have the average level of pct_non-functional, i.e. the high-high locations.
 
-###### 6.3.4.2  Plotting Moran scatterplot with standardised variable
+###### 6.3.4.2 Plotting Moran scatterplot with standardised variable
 
-First we will use [*scale()*](https://www.rdocumentation.org/packages/base/versions/3.6.2/topics/scale) to centers and scales the variable. Here centering is done by subtracting the mean (omitting NAs) the corresponding columns, and scaling is done by dividing the (centered) variable by their standard
-deviations.
+First we will use [*scale()*](https://www.rdocumentation.org/packages/base/versions/3.6.2/topics/scale) to centers and scales the variable. Here centering is done by subtracting the mean (omitting NAs) the corresponding columns, and scaling is done by dividing the (centered) variable by their standard deviations.
 
 ```{r}
 nga_wp$z.pctnon <- scale(nga_wp$`pct_non-functional`) %>% 
@@ -571,6 +553,7 @@ nci2 <- moran.plot(nga_wp$z.pctnon, rswm_f,
 ```
 
 ###### 
+
 6.3.4.3 Preparing LISA map classes
 
 The code chunks below show the steps to prepare a LISA cluster map.
@@ -586,7 +569,7 @@ nga_wp$lag_pctnon <- lag.listw(rswm_f, nga_wp$`pct_non-functional`,zero.policy =
 DV <- nga_wp$lag_pctnon - mean(nga_wp$lag_pctnon)     
 ```
 
-This is follow by centering the local Moran\'s around the mean.
+This is follow by centering the local Moran's around the mean.
 
 ```{r}
 LM_I <- localMI[,1] - mean(localMI[,1])    
@@ -634,9 +617,9 @@ tm_shape(nga.localMI) +
 
 The map above shows that percentages of non-functional water points in areas in red are high and clustered; percentages in deep blue are low and sparsed; percentages in light blue are low outliers among high neighbours; percentages in orange are high outliers among low neighbours.
 
-### 7.  Hot Spot and Cold Spot Area Analysis
+### 7. Hot Spot and Cold Spot Area Analysis
 
-Beside detecting cluster and outliers, localised spatial statistics can be also used to detect hot spot and/or cold spot areas. Spatial statistics to detect spatial anomalies is the Getis and Ord\'s G-statistics
+Beside detecting cluster and outliers, localised spatial statistics can be also used to detect hot spot and/or cold spot areas. Spatial statistics to detect spatial anomalies is the Getis and Ord's G-statistics
 
 The analysis consists of three steps:
 
