@@ -303,7 +303,19 @@ The **fixed distance method** works well for point data. It is often a good opti
 
 ##### 6.1.1 Determine the cut-off distance
 
-Firstly, we need to determine the upper limit for distance band by using the steps below:
+To get our longitude values we map the st_centroid function over the
+geometry column of us.bound and access the longitude value through
+double bracket notation \[\[\]\] and 1. This allows us to get only the
+longitude, which is the first value in each centroid.
+
+```{r}
+longitude <- map_dbl(nga_wp$geometry, ~st_centroid(.x)[[1]])
+latitude <- map_dbl(nga_wp$geometry, ~st_centroid(.x)[[2]])
+coords <- cbind(longitude, latitude)
+head(coords)
+```
+
+Then, we need to determine the upper limit for distance band by using the steps below:
 
 -   Return a matrix with the indices of points belonging to the set of the k nearest neighbours of each other by using [*knearneigh()*](https://r-spatial.github.io/spdep/reference/knearneigh.html) of **spdep**.
 
@@ -375,6 +387,18 @@ The Null Hypothesis for Spatial Randomness:
 
 ##### 6.2.1 Moran's I Test
 
+As the snippet shows, there are some percentage becomes *NaN* because the *total wpt* is 0. We should recode these NA as 0.
+
+![](images/tempsnip.png)
+
+```{r}
+nga_wp <- nga_wp %>%
+  mutate(pct_functional = replace_na(pct_functional,0))%>%
+  mutate(`pct_non-functional`=replace_na(`pct_non-functional`,0))
+
+write_rds(nga_wp,"geodata/nga_wp.rds")
+```
+
 The code chunk below performs Moran's I statistical testing using *moran.test()* of **spdep**.
 
 ```{r}
@@ -405,20 +429,6 @@ From the summary of the test result, we can see that the **p-value** is **0.001,
 ##### 6.2.3 Geary's C Test
 
 The code chunk below performs Geary's C test for spatial autocorrelation by using [*geary.test()*](https://r-spatial.github.io/spdep/reference/geary.test.html) of **spdep**.
-
-```{r eval=FALSE}
-geary.test(nga_wp$`pct_non-functional`, listw=rswm_f, zero.policy = TRUE)
-```
-
-The code chunk above says we have NA in the column *pct_non-functinal.* We should check the NA in the original data table. As the snippet shows, there are some percentage becomes *NaN* because the *total wpt* is 0. We should recode these NA as 0.![](images/tempsnip.png)
-
-```{r}
-nga_wp <- nga_wp %>%
-  mutate(pct_functional = replace_na(pct_functional,0))%>%
-  mutate(`pct_non-functional`=replace_na(`pct_non-functional`,0))
-
-write_rds(nga_wp,"geodata/nga_wp.rds")
-```
 
 Now we can do the Geary's C test:
 
