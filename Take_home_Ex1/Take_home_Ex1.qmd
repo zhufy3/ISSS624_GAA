@@ -336,12 +336,6 @@ We can display the content of the matrix by using *str()*.
 str(wm_d72)
 ```
 
-We can also display the structure of the weight matrix by combining [*table()*](https://www.rdocumentation.org/packages/base/versions/3.6.2/topics/table) and [*card()*](https://r-spatial.github.io/spdep/reference/card.html) of spdep.
-
-```{r}
-table(nga_wp$shapeName, card(wm_d72))
-```
-
 ##### 6.1.3 Plotting distance based neighbours
 
 Let us now plot the weight matrix using the code chunk below.
@@ -354,7 +348,7 @@ plot(k1, coords, add=TRUE, col="red", length=0.08)
 
 The red lines show the links of 1st nearest neighbours and the black lines show the links of neighbours within the cut-off distance of 72km.
 
-Next, we need to assign weights to each neighboring polygon based both on *Adaptive Distance*. In our case, each neighboring polygon will be assigned equal weight (style="W").
+Next, we need to assign weights to each neighboring polygon based both on *Fixed Distance*. In our case, each neighboring polygon will be assigned equal weight (style="W").
 
 ```{r}
 rswm_f <- nb2listw(wm_d72, 
@@ -381,7 +375,7 @@ The Null Hypothesis for Spatial Randomness:
 
 ##### 6.2.1 Moran's I Test
 
-The code chunk below performs Moran's I statistical testing using [*moran.test()*](https://r-spatial.github.io/spdep/reference/moran.test.html) of **spdep**.
+The code chunk below performs Moran's I statistical testing using *moran.test()* of **spdep**.
 
 ```{r}
 moran.test(nga_wp$`pct_non-functional`, 
