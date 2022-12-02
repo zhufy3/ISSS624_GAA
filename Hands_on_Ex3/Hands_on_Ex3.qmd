@@ -1,0 +1,82 @@
+---
+title: "Hands-on Exercise 3"
+author: "Fangyuan ZHU"
+editor: visual
+---
+
+# Geographical Segmentation with Spatially Constrained Clustering Techniques
+
+## Overview
+
+In this hands-on exercise, you will gain hands-on experience on how
+to delineate homogeneous region by using geographically referenced
+multivariate data. There are two major analysis, namely:
+
+-   hierarchical cluster analysis
+
+-   spatially constrained cluster analysis
+
+## 1 Data used
+
+-   Myanmar Township Boundary Data (i.e. *myanmar_township_boundaries*):
+    This is a GIS data in ESRI shapefile format. It consists of township
+    boundary information of Myanmar. The spatial data are captured in
+    polygon features.
+
+-   *Shan-ICT.csv*: This is an extract of [The 2014 Myanmar Population and Housing Census Myanmar](https://myanmar.unfpa.org/en/publications/2014-population-and-housing-census-myanmar-data-sheet) at the township level.
+
+## 2 Packages used
+
+-    **sf, rgdal, spdep** for spatial data handling
+
+-   **tidyverse, readr, ggplot2, dplyr** for attribute data handling
+
+-   **tmap** for choropleth mapping
+
+-   **coorplot, ggpubr, heatmaply** for multivariate data visualisation
+
+-   **cluster, ClustGeo** for cluster analysis
+
+Now let us install and launche these R packages into R environment!
+
+```{r}
+pacman::p_load(rgdal, spdep, tmap, sf, 
+               ggpubr, cluster, factoextra, NbClust,
+               heatmaply, corrplot, psych, tidyverse)
+```
+
+## 3 Data preparation
+
+### 3.1 Importing data
+
+#### 3.1.1 Importing geospatial data into R environment
+
+In this section, you will import Myanmar Township Boundary GIS data and its associated attrbiute table into R environment by using *st_read()* of ***sf:***
+
+```{r}
+shan_sf <- st_read(dsn = "data/geospatial", 
+                   layer = "myanmar_township_boundaries") %>%
+  filter(ST %in% c("Shan (East)", "Shan (North)", "Shan (South)"))
+```
+
+We can view the content of the newly created *shan_sf* simple features data.frame by using the code chunk below.
+
+```{r}
+shan_sf
+```
+
+Since the newly produced *shan_sf* is sf.data.frame which is conformed to tidy framework, we can also *glimpse()* to reveal the data type of its fields.
+
+```{r}
+glimpse(shan_sf)
+```
+
+#### 3,1,2 Importing aspatial data into R environment
+
+Since the aspatial data is written in *csv* file, we use *read_csv()* to import the data into R environment and name it as *ict.*
+
+```{r}
+ict <- read_csv ("data/aspatial/Shan-ICT.csv")
+```
+
+It is saved in R\'s *tibble data.frame* format. We check the statistic attributes using *summary* function.

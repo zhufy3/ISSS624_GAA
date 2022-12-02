@@ -301,10 +301,7 @@ The **fixed distance method** works well for point data. It is often a good opti
 
 ##### 6.1.1 Determine the cut-off distance
 
-To get our longitude values we map the st_centroid function over the
-geometry column of us.bound and access the longitude value through
-double bracket notation \[\[\]\] and 1. This allows us to get only the
-longitude, which is the first value in each centroid.
+To get our longitude values we map the st_centroid function over the geometry column of us.bound and access the longitude value through double bracket notation \[\[\]\] and 1. This allows us to get only the longitude, which is the first value in each centroid.
 
 ```{r}
 longitude <- map_dbl(nga_wp$geometry, ~st_centroid(.x)[[1]])
