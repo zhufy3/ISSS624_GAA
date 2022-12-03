@@ -18,3 +18,52 @@ pacman::p_load(tidyverse, tidymodels)
 ```{r}
 exam<-read_csv("data/Exam_data.csv")
 ```
+
+### EDA
+
+```{r}
+ggplot(data=exam,
+       aes(x=GENDER,y=MATHS))+
+  geom_boxplot()+
+  labs(y="Maths scores")
+```
+
+### Summary statistics
+
+```{r}
+exam%>%
+  group_by(GENDER)%>%
+  summarise(n=n(),
+            mean_score=mean(MATHS),
+            std_dev=sd(MATHS))
+
+group_by
+```
+
+### Specify variables
+
+```{r}
+exam%>%
+  specify(formula = MATHS~GENDER)
+```
+
+### Hypothesize the null
+
+```{r}
+exam%>%
+  specify(formula = MATHS~GENDER)%>%
+  hypothesise(null = "independence")%>%
+  generate(reps = 1000,type = "permute")%>%
+  View()
+
+```
+
+```{r}
+null_distribution_maths<-exam%>%
+  specify(formula = MATHS~GENDER)%>%
+  hypothesise(null = "independence")%>%
+  generate(reps = 1000,type = "permute")%>%
+  calculate(stat = "diff in means",
+            order = c("Female","Male"))
+null_distribution_maths
+```
