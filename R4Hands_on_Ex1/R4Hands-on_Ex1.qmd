@@ -1,0 +1,20 @@
+---
+title: "R4Hands-on Ex1"
+editor: visual
+---
+
+## Overview
+
+## Packages Used
+
+```{r}
+pacman::p_load(tidyverse, tidymodels)
+```
+
+## Data Preparation
+
+### Importing data into R environment
+
+```{r}
+exam<-read_csv("data/Exam_data.csv")
+```

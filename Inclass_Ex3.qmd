@@ -1,0 +1,10 @@
+---
+title: "Inclass Exercise 3"
+author: "Fangyuan ZHU"
+editor: visual
+format: html
+execute: 
+  warning: false
+  message: false
+  fig-retine: 3
+---

@@ -8,9 +8,7 @@ editor: visual
 
 ## Overview
 
-In this hands-on exercise, you will gain hands-on experience on how
-to delineate homogeneous region by using geographically referenced
-multivariate data. There are two major analysis, namely:
+In this hands-on exercise, you will gain hands-on experience on how to delineate homogeneous region by using geographically referenced multivariate data. There are two major analysis, namely:
 
 -   hierarchical cluster analysis
 
@@ -18,16 +16,13 @@ multivariate data. There are two major analysis, namely:
 
 ## 1 Data Used
 
--   Myanmar Township Boundary Data (i.e. *myanmar_township_boundaries*):
-    This is a GIS data in ESRI shapefile format. It consists of township
-    boundary information of Myanmar. The spatial data are captured in
-    polygon features.
+-   Myanmar Township Boundary Data (i.e. *myanmar_township_boundaries*): This is a GIS data in ESRI shapefile format. It consists of township boundary information of Myanmar. The spatial data are captured in polygon features.
 
 -   *Shan-ICT.csv*: This is an extract of [The 2014 Myanmar Population and Housing Census Myanmar](https://myanmar.unfpa.org/en/publications/2014-population-and-housing-census-myanmar-data-sheet) at the township level.
 
 ## 2 Packages Used
 
--    **sf, rgdal, spdep** for spatial data handling
+-   **sf, rgdal, spdep** for spatial data handling
 
 -   **tidyverse, readr, ggplot2, dplyr** for attribute data handling
 
@@ -87,7 +82,7 @@ Since the aspatial data is written in *csv* file, we use *read_csv()* to import 
 ict <- read_csv ("data/aspatial/Shan-ICT.csv")
 ```
 
-It is saved in R\'s *tibble data.frame* format. We check the statistic attributes using *summary* function.
+It is saved in R's *tibble data.frame* format. We check the statistic attributes using *summary* function.
 
 ```{r}
 summary(ict)
@@ -95,11 +90,7 @@ summary(ict)
 
 ### 3.2 Derive New Variables
 
-The unit of measurement of the values are number of household. Using
-these values directly will be bias by the underlying total number of
-households. In general, the townships with relatively higher total
-number of households will also have higher number of households owning
-radio, TV, etc. In order to overcome this problem, we will derive the penetration rate of each ICT variable by using the code chunk below.
+The unit of measurement of the values are number of household. Using these values directly will be bias by the underlying total number of households. In general, the townships with relatively higher total number of households will also have higher number of households owning radio, TV, etc. In order to overcome this problem, we will derive the penetration rate of each ICT variable by using the code chunk below.
 
 ```{r}
 ict_derived <- ict %>%
@@ -127,7 +118,7 @@ Columns named RADIO_PR, TV_PR, LLPHONE_PR, MPHONE_PR, COMPUTER_PR, and INTERNET_
 
 ## 4 Exploratory Data Analysis (EDA)
 
-###  4.1 Distribution of the variables 
+### 4.1 Distribution of the variables
 
 We now plot the histgram of frequency of ratio of *RADIO* to analyse its distribution.
 
@@ -150,8 +141,7 @@ ggplot(data=ict_derived,
 
 There are 3 significant outliers for *RADIO.*
 
-Next, we will also plotting the distribution of the newly derived
-variables (i.e. Radio penetration rate) by using the code chunk below.
+Next, we will also plotting the distribution of the newly derived variables (i.e. Radio penetration rate) by using the code chunk below.
 
 ```{r}
 ggplot(data=ict_derived, 
@@ -232,11 +222,7 @@ Now we can plot choropleth map by using code below.
 qtm(shan_sf, "RADIO_PR")
 ```
 
-In order to reveal the distribution shown in the choropleth map above
-are bias to the underlying total number of households at the townships,
-we will create two choropleth maps, one for the total number of
-households (i.e. TT_HOUSEHOLDS.map) and one for the total number of
-household with Radio (RADIO.map) by using the code chunk below.
+In order to reveal the distribution shown in the choropleth map above are bias to the underlying total number of households at the townships, we will create two choropleth maps, one for the total number of households (i.e. TT_HOUSEHOLDS.map) and one for the total number of household with Radio (RADIO.map) by using the code chunk below.
 
 ```{r}
 TT_HOUSEHOLDS.map <- tm_shape(shan_sf) + 
@@ -259,9 +245,7 @@ tmap_arrange(TT_HOUSEHOLDS.map, RADIO.map,
 
 Notice that, as mentioned above, the choropleth maps above clearly show that townships with relatively larger number ot households are also showing relatively higher number of radio ownership.
 
-Now let us plot the choropleth maps showing the dsitribution of total
-number of households and Radio penetration rate by using the code chunk
-below.
+Now let us plot the choropleth maps showing the dsitribution of total number of households and Radio penetration rate by using the code chunk below.
 
 ```{r}
 tm_shape(shan_sf) +
@@ -290,9 +274,7 @@ corrplot.mixed(cluster_vars.cor,
                tl.col = "black")
 ```
 
-The correlation plot above shows that COMPUTER_PR and INTERNET_PR are
-highly correlated. This suggest that only one of them should be used in
-the cluster analysis instead of both.
+The correlation plot above shows that COMPUTER_PR and INTERNET_PR are highly correlated. This suggest that only one of them should be used in the cluster analysis instead of both.
 
 ## 6 Correlation Hierarchy Analysis
 
@@ -398,9 +380,7 @@ We can then plot the tree by using *plot()* of R Graphics as shown in the code c
 plot(hclust_ward, cex=0.6)
 ```
 
-The *agnes()* function can get the agglomerative
-coefficient, which measures the amount of clustering structure found
-(values closer to 1 suggest strong clustering structure).
+The *agnes()* function can get the agglomerative coefficient, which measures the amount of clustering structure found (values closer to 1 suggest strong clustering structure).
 
 The code chunk below will be used to compute the agglomerative coefficients of all hierarchical clustering algorithms.
 
@@ -415,10 +395,7 @@ ac <- function(x) {
 map_dbl(m, ac)
 ```
 
-With reference to the output above, we can see that Ward\'s method
-provides the strongest clustering structure among the four methods
-assessed. Hence, in the subsequent analysis, only Ward\'s method will be
-used.
+With reference to the output above, we can see that Ward's method provides the strongest clustering structure among the four methods assessed. Hence, in the subsequent analysis, only Ward's method will be used.
 
 ## 7 Determine Optimal Cluster
 
@@ -432,9 +409,7 @@ Here are three commonly used methods to determine the optimal clusters, they are
 
 ### 7.1 Gap statistic method
 
-The **gap statistic** compares the total within intra-cluster variation for different values of k with their expected values under null reference distribution of the data. The estimate of the optimal clusters will be value that maximize the gap statistic (i.e., that yields the largest gap statistic). This
-means that the clustering structure is far away from the random uniform
-distribution of points.
+The **gap statistic** compares the total within intra-cluster variation for different values of k with their expected values under null reference distribution of the data. The estimate of the optimal clusters will be value that maximize the gap statistic (i.e., that yields the largest gap statistic). This means that the clustering structure is far away from the random uniform distribution of points.
 
 To compute the gap statistic, *clusGap()* of **cluster** package will be used.
 
@@ -551,9 +526,7 @@ shan.nb <- poly2nb(shan_sp)
 summary(shan.nb)
 ```
 
-These are used as the nodes for the graph representation. We also set
-the color to blue and specify add=TRUE to plot the network on top of the
-boundaries.
+These are used as the nodes for the graph representation. We also set the color to blue and specify add=TRUE to plot the network on top of the boundaries.
 
 ```{r}
 plot(shan_sp, 
@@ -567,6 +540,7 @@ plot(shan.nb,
 ### 9.3 Computing minimum spanning tree
 
 #### 
+
 9.3.1 Calculating edge costs
 
 Next, [*nbcosts()*](https://r-spatial.github.io/spdep/reference/nbcosts.html) of **spdep** package is used to compute the cost of each edge. It is the distance between it nodes. This function compute this distance using a data.frame with observations vector in each node.
@@ -577,10 +551,7 @@ The code chunk below is used to compute the cost of each edge.
 lcosts <- nbcosts(shan.nb, shan_ict)
 ```
 
-Next, We will incorporate these costs into a weights object in the
-same way as we did in the calculation of inverse of distance weights. In
-other words, we convert the neighbour list to a list weights object by
-specifying the just computed ***lcosts*** as the weights. Note that we specify the *style* as **B** to make sure the cost values are not row-standardised.
+Next, We will incorporate these costs into a weights object in the same way as we did in the calculation of inverse of distance weights. In other words, we convert the neighbour list to a list weights object by specifying the just computed ***lcosts*** as the weights. Note that we specify the *style* as **B** to make sure the cost values are not row-standardised.
 
 ```{r}
 shan.w <- nb2listw(shan.nb, 
@@ -607,9 +578,7 @@ class(shan.mst)
 dim(shan.mst)
 ```
 
-Note that the dimension is 54 and not 55. This is because the minimum
-spanning tree consists on n-1 edges (links) in order to traverse all
-the nodes.
+Note that the dimension is 54 and not 55. This is because the minimum spanning tree consists on n-1 edges (links) in order to traverse all the nodes.
 
 We can display the content of *shan.mst* by using *head()* as shown in the code chunk below.
 
@@ -629,7 +598,7 @@ plot.mst(shan.mst,
          add=TRUE)
 ```
 
-### 9.4  Computing spatially constrained clusters using SKATER method
+### 9.4 Computing spatially constrained clusters using SKATER method
 
 The code chunk below compute the spatially constrained cluster using *skater()* of **spdep** package.
 
@@ -682,9 +651,7 @@ shan_sf_spatialcluster <- cbind(shan_sf_cluster, as.factor(groups_mat)) %>%
 qtm(shan_sf_spatialcluster, "SP_CLUSTER")
 ```
 
-For easy comparison, it will be better to place both the hierarchical
-clustering and spatially constrained hierarchical clustering maps next
-to each other.
+For easy comparison, it will be better to place both the hierarchical clustering and spatially constrained hierarchical clustering maps next to each other.
 
 ```{r}
 hclust.map <- qtm(shan_sf_cluster,
