@@ -1,5 +1,5 @@
 ---
-title: "Hands-on Exercise 3"
+title: "Inclass Exercise 3"
 author: "Fangyuan ZHU"
 editor: visual
 ---
