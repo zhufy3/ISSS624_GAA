@@ -1,5 +1,5 @@
 ---
-title: "Inclass Exercise 2"
+title: "Inclass Exercise 3"
 author: Fangyuan ZHU
 execute: 
   warning: false
