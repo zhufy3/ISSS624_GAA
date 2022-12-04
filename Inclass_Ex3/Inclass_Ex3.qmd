@@ -37,23 +37,7 @@ Now let us install and launche these R packages into R environment!
 ```{r}
 pacman::p_load(rgdal, spdep, tmap, sf, 
                ggpubr, cluster, factoextra, NbClust,
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
                TSP, heatmaply, corrplot, psych, tidyverse,ClustGeo)
-=======
-               TSP, heatmaply, corrplot, psych, tidyverse)
->>>>>>> e7032b81eca7edfb1480d90cf27d0198ced4a2b8
-=======
-               TSP, heatmaply, corrplot, psych, tidyverse)
->>>>>>> e7032b81eca7edfb1480d90cf27d0198ced4a2b8
-=======
-               TSP, heatmaply, corrplot, psych, tidyverse)
->>>>>>> e7032b81eca7edfb1480d90cf27d0198ced4a2b8
-=======
-               TSP, heatmaply, corrplot, psych, tidyverse)
->>>>>>> e7032b81eca7edfb1480d90cf27d0198ced4a2b8
 ```
 
 ## 3 Data Preparation
