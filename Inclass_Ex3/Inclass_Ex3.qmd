@@ -40,7 +40,11 @@ pacman::p_load(rgdal, spdep, tmap, sf,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                TSP, heatmaply, corrplot, psych, tidyverse,ClustGeo)
+=======
+               TSP, heatmaply, corrplot, psych, tidyverse)
+>>>>>>> e7032b81eca7edfb1480d90cf27d0198ced4a2b8
 =======
                TSP, heatmaply, corrplot, psych, tidyverse)
 >>>>>>> e7032b81eca7edfb1480d90cf27d0198ced4a2b8
@@ -680,6 +684,7 @@ tmap_arrange(hclust.map, shclust.map,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 ## 10 Spatially Constrained Clustering: ClustGeo Method
 
@@ -756,6 +761,8 @@ We can now plot the map of the newly delineated spatially constrained clusters.
 ```{r}
 qtm(shan_sf_Gcluster, "CLUSTER")
 ```
+=======
+>>>>>>> e7032b81eca7edfb1480d90cf27d0198ced4a2b8
 =======
 >>>>>>> e7032b81eca7edfb1480d90cf27d0198ced4a2b8
 =======
