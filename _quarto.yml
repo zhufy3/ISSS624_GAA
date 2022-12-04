@@ -19,11 +19,17 @@ website:
           - text: Inclass Exercise 1
             href: Inclass_Ex1/Inclass_Ex1.qmd
           - text: Inclass Exercise 2
-            href: Inclass_Ex2/Inclass_Ex2.qmd
+            href: Inclass_Ex2/Inclass_Ex2.qmd 
+          - text: Inclass Exercise 3
+            href: Inclass_Ex3/Inclass_Ex3.qmd
+            
       - text: Take Home Exercises
         menu: 
           - text: Take Home Exercise 1
             href: Take_home_Ex1/Take_home_Ex1.qmd
+      - text: R4DSA Exercises
+        menu: 
+          - text: R4DSA Exercise 1
     right:
       - href: index.qmd
         text: Home

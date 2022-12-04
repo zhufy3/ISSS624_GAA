@@ -1,0 +1,81 @@
+---
+title: "Inclass Exercise 3"
+author: "ZHU Fangyuan"
+Naviga
+editor: visual
+---
+
+## Overview
+
+In this in-class exercise, we will learn several useful ways to deal with geospatial and aspatial data of **Nigeria** case! Let us get started now!
+
+## 1 Packages Used
+
+Packages below will be used in this in-class exercise:
+
+-   ***sf*** : importing and processing geospatial data
+
+-   ***tidyverse:*** importing and processing non-spatial data. In this exercise, readr package will be used for importing wkt data and dplyr package will be used to wrangling the data
+
+```{r}
+pacman::p_load(sf, tidyverse)
+```
+
+## 2 Data Used
+
+In this exercise, two data sets will be used:
+
+-   **Aspatial data:** from [WPdx Global Data Repositories](https://www.waterpointdata.org/access-data/). We will use the WPdx+ data set.
+
+**Geospatial data:** Nigeria Level-2 Administrative Boundary (also known as Local Government Area) polygon features GIS data from the [Humanitarian Data Exchange](https://data.humdata.org/) portal or [geoBoundaries](https://www.geoboundaries.org/).
+
+## 3 Data Preparation
+
+### 3.1 Importing water point data
+
+First, let us import the data used into the R environment using code below.
+
+And the function `filter()` of ***dplyr*** will be used to filter data only belonging to Nigeria.
+
+```{r}
+wp_nga <- read_csv("aspatial/WPdx.csv") %>%
+  filter(`#clean_country_name` == "Nigeria")
+```
+
+### 3.2 Convert wkt data
+
+Notice that the newly imported tibble data frame (i.e. wp_nga) contains a field called *New Georeferenced Column* which represent spatial data in a textual format. In fact, this kind of text file is popularly known as **Well Known Text** in short **wkt**. So we need to convert the wkt data into **sf** data.frame.
+
+First, `st_as_sfc()` of sf package is used to derive a new field called *Geometry* as shown in the code chunk below.
+
+```{r}
+wp_nga$Geometry = st_as_sfc(wp_nga$`New Georeferenced Column`)
+```
+
+Next, `st_sf()` will be used to convert the tibble data frame into sf data frame.
+
+```{r}
+wp_sf <- st_sf(wp_nga, crs=4326) 
+wp_sf
+```
+
+### 3.3 Importing Nigeria LGA boundary data
+
+Now we import the geospatial data in the R environment.
+
+```{r}
+nga<-st_read(dsn = "geospatial",
+             layer = "geoBoundaries-NGA-ADM2",
+             crs=4326)%>%
+  select(shapeName)
+```
+
+### 3.4 Points in polygon
+
+In this section, we will transfer the attribute information in *nga* sf data frame into *wp_sf* data frame.
+
+```{r}
+wp_sf <- st_join(wp_sf, nga)
+write_rds(wp_sf,"wp_sf.rds")
+write_rds(wp_nga,"wp_nga.rds")
+```
