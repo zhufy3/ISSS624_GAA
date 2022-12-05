@@ -1,7 +1,6 @@
 ---
 title: "Inclass Exercise 3"
 author: "ZHU Fangyuan"
-Naviga
 editor: visual
 ---
 
