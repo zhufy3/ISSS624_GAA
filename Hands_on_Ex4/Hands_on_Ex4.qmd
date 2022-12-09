@@ -599,3 +599,15 @@ tm_shape(condo_resale.sf.adaptive) +
 ```{r}
 tmap_mode("plot")
 ```
+
+#### 8.4.1 By URA Plannign Region
+
+```{r}
+tm_shape(mpsz_svy21[mpsz_svy21$REGION_N=="CENTRAL REGION", ])+
+  tm_polygons()+
+tm_shape(condo_resale.sf.adaptive) + 
+  tm_bubbles(col = "Local_R2",
+           size = 0.15,
+           border.col = "gray60",
+           border.lwd = 1)
+```
