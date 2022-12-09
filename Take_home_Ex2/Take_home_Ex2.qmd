@@ -42,12 +42,12 @@ Packages below will be used in this in-class exercise:
 
 -   **tmap** for choropleth mapping
 
--   **coorplot, ggpubr, TSP, heatmaply** for multivariate data visualisation
+-   **corrplot, ggpubr, TSP, heatmaply** for multivariate data visualisation
 
 -   **cluster, ClustGeo** for cluster analysis
 
 ```{r eval=FALSE}
-pacman::p_load(rgdal, spdep, tmap, sf, 
+pacman::p_load(rgdal, spdep, tmap, sf, readr, ggplot2, dplyr,
                ggpubr, cluster, factoextra, NbClust,
                TSP, heatmaply, corrplot, psych, tidyverse,ClustGeo)
 ```
@@ -156,7 +156,7 @@ dup
 
 As the output reveals, there are no observations duplicated in *wp_sf* data frame. Then we use the same codes to check if there are duplicated features and fields in the *nga* data frame.
 
-```{r}
+```{r eval=FALSE}
 nga<-read_rds("geodata/nga.rds")
 dup_coln<-which(duplicated(t(nga)))
 dup_n<-which(duplicated(nga))
@@ -231,28 +231,27 @@ getmode <- function(v) {
 
 Then we replace the missing values with **Mode of the column's values.**
 
-```{r}
-wp_sf<-read_rds("geodata/wp_sf.rds")
+```{r eval=FALSE}
 wp_sf<-wp_sf%>%
   mutate(water_tech=replace_na(water_tech,getmode(water_tech)))
 ```
 
 However, for *status_cle,* it is irrational to use **mode** to replace the missing values.
 
-```{r}
+```{r eval=FALSE}
 getmode(wp_sf$status_cle)
 ```
 
 Because as the output shown above, the mode for *status_cle* is *Functional,* but **from my perspective,** it is mostly impossible that functional water points were missed to be recorded. Therefore, those missing values are probably nonfunctional water points. We replace missing values in *status_cle* with *Non-Functional.*
 
-```{r}
+```{r eval=FALSE}
 wp_sf<-wp_sf%>%
   mutate(status_cle = replace_na(status_cle, "Non-Functional"))
 ```
 
 In addition, we should check the status of water points where there are missing values in *water point population* and *local population \<1km* using code chunk below.
 
-```{r}
+```{r eval=FALSE}
 wp_sf[is.na(wp_sf$wptpp)==1,]%>%
   group_by(status_cle)%>%
   summarise(n=n())
@@ -264,7 +263,7 @@ wp_sf[is.na(wp_sf$locpp)==1,]%>%
 
 Noticed that water points where there are missing values for populations are either *Abandoned/Decommissioned* or *Non-Functional water points.* Therefore, we assume there are no people living where there is a missing value and recode NAs with 0 as shown below.
 
-```{r}
+```{r eval=FALSE}
 wp_sf<-wp_sf%>%
   mutate(wptpp = replace_na(wptpp,0))
 
@@ -274,19 +273,19 @@ wp_sf<-wp_sf%>%
 
 Before we start our journey on creating new variables, let us take a look on statistics summary of the *wp_sf* data frame with codes below.
 
-```{r}
+```{r eval=FALSE}
 wp_sf%>%
   group_by(water_tech)%>%
   summarise(n=n())
 ```
 
-```{r}
+```{r eval=FALSE}
 wp_sf%>%
   group_by(status_cle)%>%
   summarise(n=n())
 ```
 
-```{r}
+```{r eval=FALSE}
 wp_sf%>%
   group_by(usage_cap)%>%
   summarise(n=n())
@@ -387,7 +386,7 @@ nga_wp <- nga %>%
 
 Then we calculate the percentages of numbers of *Functional water points, Non-Functional water points, Hand-pump water points, usage capacity \>=1000, usage capacity\<1000,* and *rural water points* in each polygon, and merge it with *nga_wp* data table.
 
-```{r}
+```{r eval=FALSE}
 nga_wp <- nga_wp %>%
   mutate(pct_functional = `functional wpt`/`total wpt`) %>%
   mutate(`pct_non-functional` = `non-functional wpt`/`total wpt`) %>%
@@ -403,13 +402,13 @@ nga_wp <- nga_wp %>%
 
 We can quickly look at the data frame by using codes below.
 
-```{r}
+```{r eval=FALSE}
 head(nga_wp,10)
 ```
 
 As shown, there are some percentage becomes *NaN* because the *total wpt* is 0. We should recode these NA as 0.
 
-```{r}
+```{r eval=FALSE}
 nga_wp <- nga_wp %>%
   mutate(pct_functional = replace_na(pct_functional,0))%>%
   mutate(`pct_non-functional`=replace_na(`pct_non-functional`,0))%>%
@@ -423,13 +422,13 @@ nga_wp <- nga_wp %>%
 
 We can quickly look at the data frame after modified by using codes below.
 
-```{r}
+```{r eval=FALSE}
 head(nga_wp,10)
 ```
 
 Now we store the file *nga_wp* as a rds file.
 
-```{r}
+```{r eval=FALSE}
 write_rds(nga_wp,"geodata/nga_wp.rds")
 ```
 
@@ -438,6 +437,7 @@ write_rds(nga_wp,"geodata/nga_wp.rds")
 Counts of variables only have little meaning for our analysis. We focus on the percentage of number for each variable in a specific polygon. We now plot the histgram of frequency of ratio of all percentages to analyse their distributions.
 
 ```{r}
+nga_wp<-read_rds("geodata/nga_wp.rds")
 pct_func <- ggplot(data=nga_wp, 
              aes(x= `pct_functional`)) +
   geom_histogram(bins=20, 
