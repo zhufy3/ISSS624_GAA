@@ -49,7 +49,7 @@ Packages below will be used in this in-class exercise:
 ```{r eval=FALSE}
 pacman::p_load(rgdal, spdep, tmap, sf, readr, ggplot2, dplyr,
                ggpubr, cluster, factoextra, NbClust,
-               TSP, heatmaply, corrplot, psych, tidyverse,ClustGeo)
+               TSP, heatmaply, corrplot, psych, tidyverse,ClustGeo, funModeling, knitr)
 ```
 
 ## 2 Data Used

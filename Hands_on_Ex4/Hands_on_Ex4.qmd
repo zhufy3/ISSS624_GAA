@@ -7,8 +7,7 @@ editor: visual
 
 ## 1 Overview
 
-**Geographically weighted regression (GWR)** is a spatial
-statistical technique that takes non-stationary variables into consideration (e.g., climate; demographic factors; physical environment characteristics) and models the local relationships between these independent variables and an outcome of interest (also known as dependent variable). In this hands-on exercise, we will learn how to build [hedonic pricing](https://www.investopedia.com/terms/h/hedonicpricing.asp) models by using GWR methods. The dependent variable is the resale prices of condominium in 2015. The independent variables are divided into either structural and locational.
+**Geographically weighted regression (GWR)** is a spatial statistical technique that takes non-stationary variables into consideration (e.g., climate; demographic factors; physical environment characteristics) and models the local relationships between these independent variables and an outcome of interest (also known as dependent variable). In this hands-on exercise, we will learn how to build [hedonic pricing](https://www.investopedia.com/terms/h/hedonicpricing.asp) models by using GWR methods. The dependent variable is the resale prices of condominium in 2015. The independent variables are divided into either structural and locational.
 
 ## 2 Data Used
 
@@ -42,11 +41,7 @@ pacman::p_load(olsrr, corrplot, ggpubr, sf, spdep, GWmodel, tmap, tidyverse, gts
 
 ### 4.1 Importing geospatial data
 
-The geospatial data used in this hands-on exercise is called
-MP14_SUBZONE_WEB_PL. It is in ESRI shapefile format. The shapefile
-consists of URA Master Plan 2014\'s planning subzone boundaries. Polygon
-features are used to represent these geographic boundaries. The GIS data
-is in svy21 projected coordinates systems.
+The geospatial data used in this hands-on exercise is called MP14_SUBZONE_WEB_PL. It is in ESRI shapefile format. The shapefile consists of URA Master Plan 2014's planning subzone boundaries. Polygon features are used to represent these geographic boundaries. The GIS data is in svy21 projected coordinates systems.
 
 The code chunk below is used to import *MP_SUBZONE_WEB_PL* shapefile by using `st_read()` of **sf** packages.
 
@@ -140,12 +135,9 @@ ggplot(data=condo_resale.sf,aes(x=`SELLING_PRICE`))+
   geom_histogram(bin=20,color="black",fill="light blue")
 ```
 
-The figure above reveals a right skewed distribution. This means that
-more condominium units were transacted at relative lower prices.
+The figure above reveals a right skewed distribution. This means that more condominium units were transacted at relative lower prices.
 
-Statistically, the skewed dsitribution can be normalised by using log
-transformation. The code chunk below is used to derive a new variable
-called *LOG_SELLING_PRICE* by using a log transformation on the variable *SELLING_PRICE*. It is performed using `mutate()` of **dplyr** package.
+Statistically, the skewed dsitribution can be normalised by using log transformation. The code chunk below is used to derive a new variable called *LOG_SELLING_PRICE* by using a log transformation on the variable *SELLING_PRICE*. It is performed using `mutate()` of **dplyr** package.
 
 ```{r}
 condo_resale.sf<-condo_resale.sf%>%
@@ -250,10 +242,9 @@ First, we will build a simple linear regression model by using *SELLING_PRICE* a
 condo.slr <- lm(formula=SELLING_PRICE ~ AREA_SQM, data = condo_resale.sf)
 ```
 
-`lm()` returns an object of class \"lm\" or for multiple responses of class c(\"mlm\", \"lm\").
+`lm()` returns an object of class "lm" or for multiple responses of class c("mlm", "lm").
 
-The functions `summary()` and `anova()` can be used to obtain and print a summary and analysis of variance table of the results. The generic accessor functions coefficients, effects,
-fitted.values and residuals extract various useful features of the value returned by `lm`.
+The functions `summary()` and `anova()` can be used to obtain and print a summary and analysis of variance table of the results. The generic accessor functions coefficients, effects, fitted.values and residuals extract various useful features of the value returned by `lm`.
 
 ```{r}
 summary(condo.slr)
@@ -267,7 +258,7 @@ The R-squared of 0.4518 reveals that the simple regression model built is able t
 
 Since p-value is much smaller than 0.0001, we will reject the null hypothesis that mean is a good estimator of SELLING_PRICE. This will allow us to infer that simple linear regression model above is a good estimator of *SELLING_PRICE*.
 
-To visualise the best fit curve on a scatterplot, we can incorporate `lm()` as a method function in ggplot\'s geometry as shown in the code chunk below.
+To visualise the best fit curve on a scatterplot, we can incorporate `lm()` as a method function in ggplot's geometry as shown in the code chunk below.
 
 ```{r}
 ggplot(data = condo_resale.sf,
@@ -351,9 +342,7 @@ In the code chunk below, the [`ols_vif_tol()`](https://olsrr.rsquaredacademy.com
 ols_vif_tol(condo.mlr)
 ```
 
-Since the VIF of the independent variables are less than 10. We can
-safely conclude that there are no sign of multicollinearity among the
-independent variables.
+Since the VIF of the independent variables are less than 10. We can safely conclude that there are no sign of multicollinearity among the independent variables.
 
 ##### 7.2.4.1 Test for Non-Linearity
 
@@ -430,7 +419,7 @@ tm_shape(condo_resale.res.sf) +
 tmap_mode("plot")
 ```
 
-The figure above reveal that there is sign of spatial autocorrelation. To proof that our observation is indeed true, the Moran\'s I test will be performed
+The figure above reveal that there is sign of spatial autocorrelation. To proof that our observation is indeed true, the Moran's I test will be performed
 
 First, we will compute the distance-based weight matrix by using [`dnearneigh()`](https://r-spatial.github.io/spdep/reference/dnearneigh.html) function of **spdep**.
 
@@ -446,13 +435,13 @@ nb_lw<-nb2listw(nb,style = "W")
 summary(nb_lw)
 ```
 
-Next, [`lm.morantest()`](https://r-spatial.github.io/spdep/reference/lm.morantest.html) of **spdep** package will be used to perform Moran\'s I test for residual spatial autocorrelation
+Next, [`lm.morantest()`](https://r-spatial.github.io/spdep/reference/lm.morantest.html) of **spdep** package will be used to perform Moran's I test for residual spatial autocorrelation
 
 ```{r}
 lm.morantest(condo.mlr1, nb_lw)
 ```
 
-The Global Moran\'s I test for residual spatial autocorrelation shows that it\'s p-value is less than 0.00000000000000022 which is less than the alpha value of 0.05. Hence, we will reject the null hypothesis that the residuals are randomly distributed.
+The Global Moran's I test for residual spatial autocorrelation shows that it's p-value is less than 0.00000000000000022 which is less than the alpha value of 0.05. Hence, we will reject the null hypothesis that the residuals are randomly distributed.
 
 Since the Observed Global Moran I = 0.1424418 which is greater than 0, we can infer than the residuals resemble cluster distribution.
 
@@ -495,7 +484,7 @@ gwr.fixed <- gwr.basic(formula = SELLING_PRICE ~ AREA_SQM + AGE + PROX_CBD +
                        longlat = FALSE)
 ```
 
-The output is saved in a list of class \"gwrm\". The code below can be used to display the model output.
+The output is saved in a list of class "gwrm". The code below can be used to display the model output.
 
 ```{r}
 gwr.fixed
@@ -554,9 +543,9 @@ The report shows that the adjusted r-square of the gwr is 0.8561 which is signif
 
 n addition to regression residuals, the output feature class table includes fields for observed and predicted y values, condition number (cond), Local R2, residuals, and explanatory variable coefficients and standard errors.
 
-They are all stored in a SpatialPointsDataFrame or SpatialPolygonsDataFrame object integrated with fit.points, GWR coefficient estimates, y value, predicted values, coefficient standard errors and t-values in its \"data\" slot in an object called **SDF** of the output list.
+They are all stored in a SpatialPointsDataFrame or SpatialPolygonsDataFrame object integrated with fit.points, GWR coefficient estimates, y value, predicted values, coefficient standard errors and t-values in its "data" slot in an object called **SDF** of the output list.
 
-#### 8.3.1  Converting SDF into *sf* data.frame
+#### 8.3.1 Converting SDF into *sf* data.frame
 
 To visualise the fields in **SDF**, we need to first covert it into **sf** data.frame by using the code chunk below.
 
