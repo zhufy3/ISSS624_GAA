@@ -250,6 +250,28 @@ wp_sf<-wp_sf%>%
   mutate(status_cle = replace_na(status_cle, "Non-Functional"))
 ```
 
+In addition, we should check the status of water points where there are missing values in *water point population* and *local population \<1km* using code chunk below.
+
+```{r}
+wp_sf[is.na(wp_sf$wptpp)==1,]%>%
+  group_by(status_cle)%>%
+  summarise(n=n())
+
+wp_sf[is.na(wp_sf$locpp)==1,]%>%
+  group_by(status_cle)%>%
+  summarise(n=n())
+```
+
+Noticed that water points where there are missing values for populations are either *Abandoned/Decommissioned* or *Non-Functional water points.* Therefore, we assume there are no people living where there is a missing value and recode NAs with 0 as shown below.
+
+```{r}
+wp_sf<-wp_sf%>%
+  mutate(wptpp = replace_na(wptpp,0))
+
+wp_sf<-wp_sf%>%
+  mutate(locpp = replace_na(locpp,0))
+```
+
 Before we start our journey on creating new variables, let us take a look on statistics summary of the *wp_sf* data frame with codes below.
 
 ```{r}
@@ -324,6 +346,12 @@ wpt_cap_less<-wp_sf%>%
 wpt_rural<-wp_sf%>%
   filter(is_urban==FALSE)
 
+wpt_wptpp<-wp_sf%>%
+  filter(wptpp>mean(wptpp))
+
+wpt_locpp<-wp_sf%>%
+  filter(locpp>mean(locpp))
+
 ```
 
 Now we count the number of *Total,* *Functional water points, Non-Functional water points, Hand-pump water points, usage capacity \>=1000, usage capacity\<1000,* and *rural water points* at LGA level using *st_intersects()*.
@@ -336,6 +364,9 @@ HP<-lengths(st_intersects(nga,wpt_hand))
 UO<-lengths(st_intersects(nga,wpt_cap_over))
 UL<-lengths(st_intersects(nga,wpt_cap_less))
 RR<-lengths(st_intersects(nga,wpt_rural))
+WP<-lengths(st_intersects(nga,wpt_wptpp))
+LP<-lengths(st_intersects(nga,wpt_locpp))
+
 
 ```
 
@@ -349,7 +380,9 @@ nga_wp <- nga %>%
   mutate(`hand-pump wpt`=HP)%>%
   mutate(`usage cap>=1000`=UO)%>%
   mutate(`usage cap<1000`=UL)%>%
-  mutate(`rural wpt`=RR)
+  mutate(`rural wpt`=RR)%>%
+  mutate(`wpt pop`=WP)%>%
+  mutate(`local pop`=LP)
 ```
 
 Then we calculate the percentages of numbers of *Functional water points, Non-Functional water points, Hand-pump water points, usage capacity \>=1000, usage capacity\<1000,* and *rural water points* in each polygon, and merge it with *nga_wp* data table.
@@ -361,7 +394,10 @@ nga_wp <- nga_wp %>%
   mutate(`pct_hand-pump`=`hand-pump wpt`/`total wpt`)%>%
   mutate(`pct_cap>=1000`=`usage cap>=1000`/`total wpt`)%>%
   mutate(`pct_cap<1000`=`usage cap<1000`/`total wpt`)%>%
-  mutate(`pct_rural`=`rural wpt`/`total wpt`)
+  mutate(`pct_rural`=`rural wpt`/`total wpt`)%>%
+  mutate(`pct_pop`=`wpt pop`/`total wpt`)%>%
+  mutate(`pct_localpop`=`local pop`/`total wpt`)
+
 
 ```
 
@@ -380,7 +416,9 @@ nga_wp <- nga_wp %>%
   mutate(`pct_hand-pump`=replace_na(`pct_hand-pump`,0))%>%
   mutate(`pct_cap>=1000`=replace_na(`pct_cap>=1000`,0))%>%
   mutate(`pct_cap<1000`=replace_na(`pct_cap<1000`,0))%>%
-  mutate(`pct_rural`=replace_na(`pct_rural`,0))
+  mutate(`pct_rural`=replace_na(`pct_rural`,0))%>%
+  mutate(`pct_rural`=replace_na(`pct_pop`,0))%>%
+  mutate(`pct_rural`=replace_na(`pct_localpop`,0))
 ```
 
 We can quickly look at the data frame after modified by using codes below.
