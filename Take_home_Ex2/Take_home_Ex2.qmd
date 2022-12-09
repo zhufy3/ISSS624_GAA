@@ -36,8 +36,20 @@ Packages below will be used in this in-class exercise:
 
 -   ***tidyverse:*** importing and processing non-spatial data. In this exercise, readr package will be used for importing wkt data and dplyr package will be used to wrangling the data
 
+-   **rgdal, spdep** for spatial data handling
+
+-   **readr, ggplot2, dplyr** for attribute data handling
+
+-   **tmap** for choropleth mapping
+
+-   **coorplot, ggpubr, TSP, heatmaply** for multivariate data visualisation
+
+-   **cluster, ClustGeo** for cluster analysis
+
 ```{r eval=FALSE}
-pacman::p_load(sf, tidyverse)
+pacman::p_load(rgdal, spdep, tmap, sf, 
+               ggpubr, cluster, factoextra, NbClust,
+               TSP, heatmaply, corrplot, psych, tidyverse,ClustGeo)
 ```
 
 ## 2 Data Used
@@ -172,7 +184,9 @@ We first rename columns *#status_clean,* *#water_tech_category* and *usage_capac
 wp_sf<-wp_sf%>%
   rename(`status_cle`=`#status_clean`)%>%
   rename(water_tech=`#water_tech_category`)%>%
-  rename(usage_cap=usage_capacity)
+  rename(usage_cap=usage_capacity)%>%
+  rename(wptpp=water_point_population)%>%
+  rename(locpp=local_population_1km)
 ```
 
 Now columns *#status_clean* and *#water_tech_category* are changed as *status_cle,* *water_tech* and *usage_cap.*
@@ -181,7 +195,7 @@ Then let us select the columns which will be used in the analysis, to make the d
 
 ```{r eval=FALSE}
 wp_sf<-wp_sf%>%
-  select(c(1,10,22,46,47))
+  select(c(1,10,22,42,43,46,47))
 write_rds(wp_sf,"geodata/wp_sf.rds")
 ```
 
@@ -191,7 +205,7 @@ Let us see some statistics summary of the data frame with codes below and check 
 summary(wp_sf[rowSums(is.na(wp_sf))!=0,])
 ```
 
-Noted from the output above that the variable *water_tech* has 11008 *NAs,* so does variable *status_cle.* And no missing values in other variables which are *row_id,* *usage_cap* and *is_urban.*
+Noted from the output above that the variable *water_tech* has 11225 *NAs,* so does variable *status_cle. wptpp* and *locpp* both have 529 NAs. And no missing values in other variables which are *row_id,* *usage_cap* and *is_urban.*
 
 Let us see statistics summary of the missing values in LGA boundary data *nga* data frame with the same codes shown below.
 
@@ -262,7 +276,7 @@ wp_sf%>%
 
 ## 5 Data Wrangling
 
-### 4.1 Derive new variables
+### 5.1 Derive new variables
 
 Then we are supposed to extract variables we will pay attention to in this exercise, and store them in specific data frame. These variables are:
 
@@ -278,7 +292,7 @@ Then we are supposed to extract variables we will pay attention to in this exerc
 
 We first create a data frame for *Non-Functional water points.* For rational reasons, *Abandoned/Decommissioned* and *Abandoned* should also be considered as *Non-Functional water points,* so we put water points belong to there two definitions into Non-Functional data frame using codes below.
 
-```{r}
+```{r eval=FALSE}
 wpt_nonfunctional <- wp_sf %>%
   filter(status_cle %in%
            c("Abandoned/Decommissioned", 
@@ -288,9 +302,9 @@ wpt_nonfunctional <- wp_sf %>%
              "Non-Functional due to dry season"))
 ```
 
-We now create data frames for *Functional water points, Hand-pump water points, cap_over, cap_less,* and *rural water points* using the same methods.
+We now create data frames for *Functional water points, Hand-pump water points, usage capacity \>=1000, usage capacity\<1000,* and *rural water points* using the same methods.
 
-```{r}
+```{r eval=FALSE}
 wpt_functional <- wp_sf %>%
   filter(status_cle %in%
            c("Functional",
@@ -306,14 +320,269 @@ wpt_cap_over <- wp_sf %>%
 
 wpt_cap_less<-wp_sf%>%
   filter(usage_cap<1000)
+
+wpt_rural<-wp_sf%>%
+  filter(is_urban==FALSE)
+
 ```
 
-### 4.1 Points in polygon
+Now we count the number of *Total,* *Functional water points, Non-Functional water points, Hand-pump water points, usage capacity \>=1000, usage capacity\<1000,* and *rural water points* at LGA level using *st_intersects()*.
 
-In this section, we will transfer the attribute information in ***nga*** sf data frame into ***wp_sf*** data frame.
+```{r eval=FALSE}
+FC<- lengths(st_intersects(nga, wpt_nonfunctional))
+NFC<- lengths(st_intersects(nga, wpt_functional))
+TT<-lengths(st_intersects(nga, wp_sf))
+HP<-lengths(st_intersects(nga,wpt_hand))
+UO<-lengths(st_intersects(nga,wpt_cap_over))
+UL<-lengths(st_intersects(nga,wpt_cap_less))
+RR<-lengths(st_intersects(nga,wpt_rural))
+
+```
+
+We merge the count of *Total,* *Functional water points, Non-Functional water points, Hand-pump water points, usage capacity \>=1000, usage capacity\<1000,* and *rural water points* in polygons with LGA data table *nga* as *nga_wp* using codes below.
+
+```{r eval=FALSE}
+nga_wp <- nga %>% 
+  mutate(`total wpt` = TT) %>%
+  mutate(`functional wpt` = FC) %>%
+  mutate(`non-functional wpt` = NFC)%>%
+  mutate(`hand-pump wpt`=HP)%>%
+  mutate(`usage cap>=1000`=UO)%>%
+  mutate(`usage cap<1000`=UL)%>%
+  mutate(`rural wpt`=RR)
+```
+
+Then we calculate the percentages of numbers of *Functional water points, Non-Functional water points, Hand-pump water points, usage capacity \>=1000, usage capacity\<1000,* and *rural water points* in each polygon, and merge it with *nga_wp* data table.
 
 ```{r}
-wp_sf <- st_join(wp_sf, nga)
-write_rds(wp_sf,"wp_sf.rds")
-write_rds(wp_nga,"wp_nga.rds")
+nga_wp <- nga_wp %>%
+  mutate(pct_functional = `functional wpt`/`total wpt`) %>%
+  mutate(`pct_non-functional` = `non-functional wpt`/`total wpt`) %>%
+  mutate(`pct_hand-pump`=`hand-pump wpt`/`total wpt`)%>%
+  mutate(`pct_cap>=1000`=`usage cap>=1000`/`total wpt`)%>%
+  mutate(`pct_cap<1000`=`usage cap<1000`/`total wpt`)%>%
+  mutate(`pct_rural`=`rural wpt`/`total wpt`)
+
 ```
+
+We can quickly look at the data frame by using codes below.
+
+```{r}
+head(nga_wp,10)
+```
+
+As shown, there are some percentage becomes *NaN* because the *total wpt* is 0. We should recode these NA as 0.
+
+```{r}
+nga_wp <- nga_wp %>%
+  mutate(pct_functional = replace_na(pct_functional,0))%>%
+  mutate(`pct_non-functional`=replace_na(`pct_non-functional`,0))%>%
+  mutate(`pct_hand-pump`=replace_na(`pct_hand-pump`,0))%>%
+  mutate(`pct_cap>=1000`=replace_na(`pct_cap>=1000`,0))%>%
+  mutate(`pct_cap<1000`=replace_na(`pct_cap<1000`,0))%>%
+  mutate(`pct_rural`=replace_na(`pct_rural`,0))
+```
+
+We can quickly look at the data frame after modified by using codes below.
+
+```{r}
+head(nga_wp,10)
+```
+
+Now we store the file *nga_wp* as a rds file.
+
+```{r}
+write_rds(nga_wp,"geodata/nga_wp.rds")
+```
+
+### 5.2 Exploratory Data Analysis (EDA)
+
+Counts of variables only have little meaning for our analysis. We focus on the percentage of number for each variable in a specific polygon. We now plot the histgram of frequency of ratio of all percentages to analyse their distributions.
+
+```{r}
+pct_func <- ggplot(data=nga_wp, 
+             aes(x= `pct_functional`)) +
+  geom_histogram(bins=20, 
+                 color="black", 
+                 fill="light grey")
+
+pct_nonfunc <- ggplot(data=nga_wp, 
+             aes(x= `pct_non-functional`)) +
+  geom_histogram(bins=20, 
+                 color="black", 
+                 fill="light grey")
+
+pct_hand <- ggplot(data=nga_wp, 
+             aes(x= `pct_hand-pump`)) +
+  geom_histogram(bins=20, 
+                 color="black", 
+                 fill="light grey")
+
+pct_capov <- ggplot(data=nga_wp, 
+             aes(x= `pct_cap>=1000`)) +
+  geom_histogram(bins=20, 
+                 color="black", 
+                 fill="light grey")
+
+pct_capls <- ggplot(data=nga_wp, 
+             aes(x= `pct_cap<1000`)) +
+  geom_histogram(bins=20, 
+                 color="black", 
+                 fill="light grey")
+
+pct_rural <- ggplot(data=nga_wp, 
+             aes(x= `pct_rural`)) +
+  geom_histogram(bins=20, 
+                 color="black", 
+                 fill="light grey")
+
+ggarrange(pct_func, pct_nonfunc, pct_hand, pct_capov, pct_capls, pct_rural, 
+          ncol = 3, 
+          nrow = 2)
+```
+
+Noted that the percentage of *Hand pump water points, water points with usage capacity \>=1000, water points with usage capacity \<1000 and rural water points* are highly skewed. More specific, in ADMIN2 districts, most of them have half functional water points and non-functional water points and most of them have water points with usage capacity less than 1000. In addition, most of the water points are located in rural areas, and supported by hand pumps.
+
+We can also check outliers of them.
+
+```{r}
+pct_func <- ggplot(data=nga_wp, 
+             aes(x= `pct_functional`)) +
+  geom_boxplot(color="black", 
+                 fill="light grey")
+
+pct_nonfunc <- ggplot(data=nga_wp, 
+             aes(x= `pct_non-functional`)) +
+  geom_boxplot(color="black", 
+                 fill="light grey")
+
+pct_hand <- ggplot(data=nga_wp, 
+             aes(x= `pct_hand-pump`)) +
+  geom_boxplot(color="black", 
+                 fill="light grey")
+
+pct_capov <- ggplot(data=nga_wp, 
+             aes(x= `pct_cap>=1000`)) +
+  geom_boxplot(color="black", 
+                 fill="light grey")
+
+pct_caple <- ggplot(data=nga_wp, 
+             aes(x= `pct_cap<1000`)) +
+  geom_boxplot(color="black", 
+                 fill="light grey")
+
+pct_rural <- ggplot(data=nga_wp, 
+             aes(x= `pct_rural`)) +
+  geom_boxplot(color="black", 
+                 fill="light grey")
+
+ggarrange(pct_func, pct_nonfunc, pct_hand, pct_capov, pct_capls, pct_rural, 
+          ncol = 3, 
+          nrow = 2)
+```
+
+Noted that since we use ratio, the values are relatively congregated without outliers.
+
+### 5.3 Choropleth map
+
+We can draw choropleth map to visualize the distribution of each percentage variables in each polygon using code below.
+
+```{r}
+pct_func.map <- tm_shape(nga_wp) + 
+  tm_fill(col = "pct_functional",
+          n = 5,
+          style = "jenks", 
+          title = "Percentage of Functional Water Points") + 
+  tm_borders(alpha = 0.5) +
+  tm_layout(legend.outside = TRUE,
+            legend.height = 0.45, 
+            legend.width = 5.0,
+            legend.position = c("right", "bottom"),
+            frame = FALSE)
+
+pct_nonfunc.map<-tm_shape(nga_wp)+
+  tm_fill(col="pct_non-functional",
+          n=5,
+          stype="jenks",
+          title = "Percentage of Non-Functional Water Points")+ 
+  tm_borders(alpha = 0.5) +
+  tm_layout(legend.outside = TRUE,
+            legend.height = 0.45, 
+            legend.width = 5.0,
+            legend.position = c("right", "bottom"),
+            frame = FALSE)
+
+pct_hand.map<-tm_shape(nga_wp)+
+  tm_fill(col="pct_hand-pump",
+          n=5,
+          style="jenks",
+          title="Percentage of Non-Functional Water Points")+ 
+  tm_borders(alpha = 0.5) +
+  tm_layout(legend.outside = TRUE,
+            legend.height = 0.45, 
+            legend.width = 5.0,
+            legend.position = c("right", "bottom"),
+            frame = FALSE)
+
+pct_capov.map<-tm_shape(nga_wp)+
+  tm_fill(col="pct_cap>=1000",
+          n=5,
+          style="jenks",
+          title="Percentage of Usage Capacity >=1000 Water Points")+ 
+  tm_borders(alpha = 0.5) +
+  tm_layout(legend.outside = TRUE,
+            legend.height = 0.45, 
+            legend.width = 5.0,
+            legend.position = c("right", "bottom"),
+            frame = FALSE)
+
+pct_caple.map<-tm_shape(nga_wp)+
+  tm_fill(col="pct_cap<1000",
+          n=5,
+          style="jenks",
+          title="Percentage of Usage Capacity <1000 Water Points")+ 
+  tm_borders(alpha = 0.5) +
+  tm_layout(legend.outside = TRUE,
+            legend.height = 0.45, 
+            legend.width = 5.0,
+            legend.position = c("right", "bottom"),
+            frame = FALSE)
+
+pct_rural.map<-tm_shape(nga_wp)+
+  tm_fill(col="pct_rural",
+          n=5,
+          style="jenks",
+          title="Percentage of Rural Water Points")+ 
+  tm_borders(alpha = 0.5)+
+  tm_layout(legend.outside = TRUE,
+            legend.height = 0.45, 
+            legend.width = 5.0,
+            legend.position = c("right", "bottom"),
+            frame = FALSE) 
+
+tmap_arrange(pct_func.map, pct_nonfunc.map, pct_hand.map, pct_capov.map, pct_caple.map, pct_rural.map, 
+          ncol = 2)
+```
+
+From the plots above, notice that areas in the north of the country have higher rate of functional water points, therefore, most water points in the south areas are non-functional. In addition, 50% of the country is equipped with hand-pumped water, which is low mechanical. The distributions of *Hand-pumped water points* and *water points with less than 1000 usage capacity* is aligned with each other. Lastly, almost water points are located in rural areas around the country.
+
+## 6 Correlation Analysis
+
+Before we start clustering, the first thing should be checking correlation between variables. We can use *corrplot.mixed()* function of ***corrplot*** package to visualise and analyse the correlation of the input variables.
+
+```{r}
+cluster_vars <- nga_wp %>%
+  st_set_geometry(NULL)
+
+cluster_vars.cor = cor(cluster_vars[,9:14])
+cluster_vars.cor
+
+corrplot.mixed(cluster_vars.cor,
+         lower = "ellipse", 
+               upper = "number",
+               tl.pos = "lt",
+               diag = "l",
+               tl.col = "black")
+```
+
+From the proximity matrix above, noticed that percentage of **functional** water point and percentage of **non**-**functional** water point have highly correlation of -0.86 (\<-0.85); percentage of **hand**-**pumped** water point and **usage capacity \>=1000** water point have highly correlation of -0.90 (\<-0.85); percentage of **hand-pumped** water point and **usage capacity \<1000** water point have highly correlation of 0.99 (\>0.85); percentage of **usage capacity \<1000** water point and **usage capacity \>=1000** water point have highly correlation of -0.91 (\<-0.85). Therefore, we remove *pct_functional, pct_hand-pump,* and *pct_cap\>1000.*

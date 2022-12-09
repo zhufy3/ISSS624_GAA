@@ -247,7 +247,7 @@ tmap_arrange(TT_HOUSEHOLDS.map, RADIO.map,
              asp=NA, ncol=2)
 ```
 
-Notice that, as mentioned above, the choropleth maps above clearly show that townships with relatively larger number ot households are also showing relatively higher number of radio ownership.
+Notice that, as mentioned above, the choropleth maps above clearly show that townships with relatively larger number of households are also showing relatively higher number of radio ownership.
 
 Now let us plot the choropleth maps showing the dsitribution of total number of households and Radio penetration rate by using the code chunk below.
 
