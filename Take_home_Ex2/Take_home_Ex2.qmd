@@ -1,0 +1,319 @@
+---
+title: "Inclass Exercise 3"
+author: "ZHU Fangyuan"
+editor: visual
+---
+
+# Take-home Exercise 2: Regionalisation of Multivariate Water Point Attributes with Non-spatially Constrained and Spatially Constrained Clustering Methods
+
+## Objectives
+
+In this take-home exercise we will regionalise Nigeria by using, but not limited to the following measures:
+
+-   Total number of functional water points
+
+-   Total number of nonfunctional water points
+
+-   Percentage of functional water points
+
+-   Percentage of non-functional water points
+
+-   Percentage of main water point technology (i.e. Hand Pump)
+
+-   Percentage of usage capacity (i.e. \< 1000, \>=1000)
+
+-   Percentage of rural water points
+
+## Overview
+
+In this in-class exercise, we will learn several useful ways to deal with geospatial and aspatial data of **Nigeria** case! Let us get started now!
+
+## 1 Packages Used
+
+Packages below will be used in this in-class exercise:
+
+-   ***sf*** : importing and processing geospatial data
+
+-   ***tidyverse:*** importing and processing non-spatial data. In this exercise, readr package will be used for importing wkt data and dplyr package will be used to wrangling the data
+
+```{r eval=FALSE}
+pacman::p_load(sf, tidyverse)
+```
+
+## 2 Data Used
+
+In this exercise, two data sets will be used:
+
+-   **Aspatial data:** from [WPdx Global Data Repositories](https://www.waterpointdata.org/access-data/). We will use the WPdx+ data set.
+-   **Geospatial data:** Nigeria Level-2 Administrative Boundary (also known as Local Government Area) polygon features GIS data from the [Humanitarian Data Exchange](https://data.humdata.org/) portal or [geoBoundaries](https://www.geoboundaries.org/).
+
+## 3 Data Preparation
+
+### 3.1 Importing water point data
+
+First, let us import the data used into the R environment using code below.
+
+And the function `filter()` of ***dplyr*** will be used to filter data only belonging to Nigeria.
+
+```{r eval=FALSE}
+wp_nga <- read_csv("aspatial/WPdx.csv")%>%
+  filter(`#clean_country_name`=="Nigeria")
+```
+
+Noted that the data frame contains 95008 observations and 70 variables.
+
+### 3.2 Convert Well Known Text (wkt) data
+
+Notice that the newly imported tibble data frame (i.e. wp_nga) contains a field called *New Georeferenced Column* which represent spatial data in a textual format. In fact, this kind of text file is popularly known as ***Well Known Text*** in short ***wkt***. So we need to convert the *wkt* data into **sf** data.frame for subsequent analysis.
+
+First, `st_as_sfc()` of ***sf*** package is used to derive a new field called *Geometry* as shown in the code chunk below.
+
+```{r eval=FALSE}
+wp_nga$Geometry = st_as_sfc(wp_nga$`New Georeferenced Column`)
+```
+
+Next, `st_sf()` will be used to convert the *tibble* data frame into *sf* data frame. In addition, we use ***Projected Coordinate System*** for convenience in our analysis, so we set the *EPSG* code as ***26391.***
+
+```{r eval=FALSE}
+wp_sf <- st_sf(wp_nga, crs=26391) 
+wp_sf
+```
+
+The output reveals that we have:
+
+-   Simple feature collection withe 95008 features and 70 fields.
+
+-   Geometry type: POINT
+
+-   Projected CRS: Minna / Nigeria west belt
+
+### 3.3 Importing Nigeria LGA boundary data
+
+Now we import the geospatial data with the same ***Projected Coordinate System (EPSG code:26391)*** into the R environment, and we only use *shapeName* column because this boundary data only provides a basic map of the contry.
+
+```{r eval=FALSE}
+nga<-st_read(dsn = "geospatial",
+             layer = "geoBoundaries-NGA-ADM2",
+             crs=26391)%>%
+  select(shapeName)
+```
+
+The output reveals that we have:
+
+-   Simple feature collection withe 774 features and 5 fields.
+
+-   Geometry type: MULTIPOLYGON
+
+-   Projected CRS: Minna / Nigeria west belt
+
+Now we can write the tidy *sf* data frame ***nga*** as a *rds* files with code chunk below.
+
+```{r eval=FALSE}
+write_rds(nga,"geodata/nga.rds")
+```
+
+## 4 Data Wrangling
+
+### 4.1 Data issues
+
+Before we go ahead, we are supposed to deal with data issues first.
+
+#### 4.1.1 Duplicate fields and features
+
+##### 4.1.1.1 Duplicate fields
+
+We now come to check if there are duplicate fields in the *wp_sf* data frame using code chunk below.
+
+```{r eval=FALSE}
+dup_col <- duplicated(t(wp_sf))
+colnames(wp_sf[dup_col])
+```
+
+Noted that there are 7 duplicated columns *#clean_adm4, #rehabilitator, #fecal_coliform_presence, #scheme_id, lon_deg_original, updated_timestamp* and *Geometry*. However, taking a glimpse on the data table, these former 6 columns have duplicated columns because their values are all missed. And as shown in sippet below, we do see column *#water_tech_clean* and *#water_tech_category* are almost the same with some little differences.
+
+![](images/tempsnip-01.png)
+
+Therefore, we only use *#water_tech_clean* as our object of analysis because it describe observations more simplified.
+
+We now come to check if there are duplicate features in the *wp_sf* data frame using code chunk below.
+
+```{r eval=FALSE}
+dup=which(duplicated(wp_sf))
+dup
+```
+
+As the output reveals, there are no observations duplicated in *wp_sf* data frame. Then we use the same codes to check if there are duplicated features and fields in the *nga* data frame.
+
+```{r}
+nga<-read_rds("geodata/nga.rds")
+dup_coln<-which(duplicated(t(nga)))
+dup_n<-which(duplicated(nga))
+print(dup_n)
+print(dup_coln)
+```
+
+As the output reveals, there are no duplicated features and fields in the *nga* data frame.
+
+#### 4.1.2 Missing values
+
+For convenience case, we first rename the columns we pay attention to in this project, which are:
+
+-   *#status_clean*
+
+-   *#water_tech_clean* or *#water_tech_category* (these two columns are identical)
+
+-   *is_urban*
+
+-   *usage_capacity*
+
+We first rename columns *#status_clean,* *#water_tech_category* and *usage_capacity* which are untidy enough.
+
+```{r eval=FALSE}
+wp_sf<-wp_sf%>%
+  rename(`status_cle`=`#status_clean`)%>%
+  rename(water_tech=`#water_tech_category`)%>%
+  rename(usage_cap=usage_capacity)
+```
+
+Now columns *#status_clean* and *#water_tech_category* are changed as *status_cle,* *water_tech* and *usage_cap.*
+
+Then let us select the columns which will be used in the analysis, to make the data frame tidier by using codes below.
+
+```{r eval=FALSE}
+wp_sf<-wp_sf%>%
+  select(c(1,10,22,46,47))
+write_rds(wp_sf,"geodata/wp_sf.rds")
+```
+
+Let us see some statistics summary of the data frame with codes below and check missing values in the *wp_sf* data frame.
+
+```{r eval=FALSE}
+summary(wp_sf[rowSums(is.na(wp_sf))!=0,])
+```
+
+Noted from the output above that the variable *water_tech* has 11008 *NAs,* so does variable *status_cle.* And no missing values in other variables which are *row_id,* *usage_cap* and *is_urban.*
+
+Let us see statistics summary of the missing values in LGA boundary data *nga* data frame with the same codes shown below.
+
+```{r eval=FALSE}
+summary(nga[rowSums(is.na(nga))!=0,])
+```
+
+As we can see the summary information above, there is no missing value in LGA boundary data.
+
+#### 4.1.3 Recoding missing values
+
+In order to smoothly proceed our analysis without errors and warnings, it will make sense to recode the *NAs* in columns, however, we may consider replace the *NAs with different methods in different contexts.* Therefore, for ***water_tech*** with **mode** of the column's values.
+
+First we write a function ***getmode*** to get the mode of a list of values using codes below.
+
+```{r}
+getmode <- function(v) {
+   uniqv <- unique(v)
+   uniqv[which.max(tabulate(match(v, uniqv)))]
+}
+
+```
+
+Then we replace the missing values with **Mode of the column's values.**
+
+```{r}
+wp_sf<-read_rds("geodata/wp_sf.rds")
+wp_sf<-wp_sf%>%
+  mutate(water_tech=replace_na(water_tech,getmode(water_tech)))
+```
+
+However, for *status_cle,* it is irrational to use **mode** to replace the missing values.
+
+```{r}
+getmode(wp_sf$status_cle)
+```
+
+Because as the output shown above, the mode for *status_cle* is *Functional,* but **from my perspective,** it is mostly impossible that functional water points were missed to be recorded. Therefore, those missing values are probably nonfunctional water points. We replace missing values in *status_cle* with *Non-Functional.*
+
+```{r}
+wp_sf<-wp_sf%>%
+  mutate(status_cle = replace_na(status_cle, "Non-Functional"))
+```
+
+Before we start our journey on creating new variables, let us take a look on statistics summary of the *wp_sf* data frame with codes below.
+
+```{r}
+wp_sf%>%
+  group_by(water_tech)%>%
+  summarise(n=n())
+```
+
+```{r}
+wp_sf%>%
+  group_by(status_cle)%>%
+  summarise(n=n())
+```
+
+```{r}
+wp_sf%>%
+  group_by(usage_cap)%>%
+  summarise(n=n())
+
+wp_sf%>%
+  group_by(is_urban)%>%
+  summarise(n=n())
+```
+
+## 5 Data Wrangling
+
+### 4.1 Derive new variables
+
+Then we are supposed to extract variables we will pay attention to in this exercise, and store them in specific data frame. These variables are:
+
+-   Total number of **functional** water points
+
+-   Total number of **non-functional** water points
+
+-   Total number of main water point technology (i.e. *Hand pump*)
+
+-   Total number of usage capacity
+
+-   Total number of rural water points
+
+We first create a data frame for *Non-Functional water points.* For rational reasons, *Abandoned/Decommissioned* and *Abandoned* should also be considered as *Non-Functional water points,* so we put water points belong to there two definitions into Non-Functional data frame using codes below.
+
+```{r}
+wpt_nonfunctional <- wp_sf %>%
+  filter(status_cle %in%
+           c("Abandoned/Decommissioned", 
+             "Abandoned",
+             "Non-Functional",
+             "Non functional due to dry season",
+             "Non-Functional due to dry season"))
+```
+
+We now create data frames for *Functional water points, Hand-pump water points, cap_over, cap_less,* and *rural water points* using the same methods.
+
+```{r}
+wpt_functional <- wp_sf %>%
+  filter(status_cle %in%
+           c("Functional",
+             "Functional but needs repair",
+             "Functional but not in use"))
+
+wpt_hand <- wp_sf %>%
+  filter(water_tech %in%
+           "Hand Pump")
+
+wpt_cap_over <- wp_sf %>%
+  filter(usage_cap>=1000)
+
+wpt_cap_less<-wp_sf%>%
+  filter(usage_cap<1000)
+```
+
+### 4.1 Points in polygon
+
+In this section, we will transfer the attribute information in ***nga*** sf data frame into ***wp_sf*** data frame.
+
+```{r}
+wp_sf <- st_join(wp_sf, nga)
+write_rds(wp_sf,"wp_sf.rds")
+write_rds(wp_nga,"wp_nga.rds")
+```

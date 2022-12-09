@@ -12,7 +12,7 @@ editor: visual
 
 ## Overview
 
-In this hands-on exercise, you will gain hands-on experience on how to delineate homogeneous region by using geographically referenced multivariate data. There are two major analysis, namely:
+In this exercise we will learn how to delineate homogeneous region by using geographically referenced multivariate data. There are two major analysis, namely:
 
 -   hierarchical cluster analysis
 
