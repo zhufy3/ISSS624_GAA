@@ -39,8 +39,9 @@ website:
 
 format:
   html:
-    theme:
-      light: solar
+    theme: cosmo
+    fontsize: 1.1em
+    linestretch: 1.7
     
 
 editor: visual
