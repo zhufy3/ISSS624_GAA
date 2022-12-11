@@ -465,7 +465,7 @@ bw.fixed <- bw.gwr(formula = SELLING_PRICE ~ AREA_SQM + AGE + PROX_CBD +
                    longlat=FALSE)
 ```
 
-The result shows that the recommended bandwidth is 971.3398 metrics.
+The result shows that the recommended bandwidth is 971.3405 metrics.
 
 #### 8.1.2 GWModel method - fixed bandwith
 
@@ -595,6 +595,7 @@ The code chunks below is used to create an interactive point symbol map.
 ```{r}
 tmap_mode("view")
 AREA_SQM_SE <- tm_shape(mpsz_svy21)+
+  tmap_options(check.and.fix = TRUE)+
   tm_polygons(alpha = 0.1) +
 tm_shape(condo_resale.sf.adaptive) +  
   tm_dots(col = "AREA_SQM_SE",
@@ -603,6 +604,7 @@ tm_shape(condo_resale.sf.adaptive) +
   tm_view(set.zoom.limits = c(11,14))
 
 AREA_SQM_TV <- tm_shape(mpsz_svy21)+
+  tmap_options(check.and.fix = TRUE)+
   tm_polygons(alpha = 0.1) +
 tm_shape(condo_resale.sf.adaptive) +  
   tm_dots(col = "AREA_SQM_TV",
@@ -623,6 +625,7 @@ tmap_mode("plot")
 
 ```{r}
 tm_shape(mpsz_svy21[mpsz_svy21$REGION_N=="CENTRAL REGION", ])+
+  tmap_options(check.and.fix = TRUE)+
   tm_polygons()+
 tm_shape(condo_resale.sf.adaptive) + 
   tm_bubbles(col = "Local_R2",
