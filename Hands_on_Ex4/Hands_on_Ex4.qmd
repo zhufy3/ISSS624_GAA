@@ -588,7 +588,38 @@ tm_shape(condo_resale.sf.adaptive) +
 tmap_mode("plot")
 ```
 
-#### 8.4.1 By URA Plannign Region
+#### 8.4.1 Visualizing coefficient estimates
+
+The code chunks below is used to create an interactive point symbol map.
+
+```{r}
+tmap_mode("view")
+AREA_SQM_SE <- tm_shape(mpsz_svy21)+
+  tm_polygons(alpha = 0.1) +
+tm_shape(condo_resale.sf.adaptive) +  
+  tm_dots(col = "AREA_SQM_SE",
+          border.col = "gray60",
+          border.lwd = 1) +
+  tm_view(set.zoom.limits = c(11,14))
+
+AREA_SQM_TV <- tm_shape(mpsz_svy21)+
+  tm_polygons(alpha = 0.1) +
+tm_shape(condo_resale.sf.adaptive) +  
+  tm_dots(col = "AREA_SQM_TV",
+          border.col = "gray60",
+          border.lwd = 1) +
+  tm_view(set.zoom.limits = c(11,14))
+
+tmap_arrange(AREA_SQM_SE, AREA_SQM_TV, 
+             asp=1, ncol=2,
+             sync = TRUE)
+```
+
+```{r}
+tmap_mode("plot")
+```
+
+##### 8.4.1.1 By URA Plannign Region
 
 ```{r}
 tm_shape(mpsz_svy21[mpsz_svy21$REGION_N=="CENTRAL REGION", ])+
