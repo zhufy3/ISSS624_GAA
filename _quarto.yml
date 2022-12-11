@@ -41,7 +41,7 @@ website:
 
 format:
   html:
-    theme: cosmo
+    theme: spacelab
     fontsize: 1.1em
     linestretch: 1.7
     
