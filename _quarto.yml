@@ -23,7 +23,9 @@ website:
           - text: Inclass Exercise 2
             href: Inclass_Ex2/Inclass_Ex2.qmd 
           - text: Inclass Exercise 3
-            href: Inclass_Ex3/Inclass_Ex3.qmd
+            href: Inclass_Ex3/Inclass_Ex3.qmd 
+          - text: Inclass Exercise 4
+            href: Inclass_Ex4/Inclass_Ex4.qmd
             
       - text: Take Home Exercises
         menu: 
