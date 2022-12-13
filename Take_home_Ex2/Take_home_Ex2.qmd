@@ -888,4 +888,189 @@ heatmaply(normalize(wpt_clu_mat),
           )
 ```
 
-From the heatmap, we can clearly see the quite distinct segmentation of clusters,
+From the heatmap, we can clearly see the quite distinct segmentation of clusters.
+
+-   For cluster 1 (the top one), it shows that water points in these areas are relatively highly functional, with capacity less than 1000, in urban areas, with few population and few local (\<1 km) population.
+
+-   For cluster 2, it shows that water points in these areas are also relatively highly functional, with capacity less than 1000, with few population and few local (\<1 km) population, but mostly in rural areas.
+
+-   For cluster 3, it shows that water points in these areas are also with capacity mostly less than 1000, with few population and few local (\<1 km) population, mostly in rural areas, but relatively highly non-functional.
+
+-   For cluster 4, it shows that water points in these areas are also with capacity mostly more than 1000, with few district population, relatively many local (\<1 km) population, mostly in urban areas, but relatively non-functional.
+
+-   For cluster 5, it shows that water points in these areas are also with capacity mostly more than 1000, with dense district population and dense local (\<1 km) population, mostly in urban areas, and relatively functional.
+
+-   For cluster 6, it shows that water points in little proportion of areas are also with capacity mostly more than 1000, with little district population and little local (\<1 km) population, mostly in urban areas, and mostly non-functional.
+
+##### 7.5.3 Mapping the clusters formed 
+
+With closed examination of the dendragram above, we have decided to retain **6 clusters**. `cutree()` of R Base will be used in the code chunk below to derive a 6-cluster model.
+
+```{r}
+groups <- as.factor(cutree(hclust_ward, k=6))
+```
+
+In order to visualise the clusters, the *groups* object needs to be appended onto *nga_wp* simple feature object. And we need 3 steps to achieve this.
+
+-   the *groups* list object will be converted into a matrix;
+
+-   *cbind()* is used to append *groups* matrix onto *nga_wp* to produce an output simple feature object called `nga_sf_cluster`; and
+
+-   *rename* of **dplyr** package is used to rename *as.matrix.groups* field as *CLUSTER*.
+
+```{r}
+nga_sf_cluster <- cbind(nga_wp, as.matrix(groups)) %>%
+  rename(`CLUSTER`=`as.matrix.groups.`)
+```
+
+Next, *qtm()* of **tmap** package is used to plot the choropleth map showing the cluster formed.
+
+```{r}
+qtm(nga_sf_cluster, "CLUSTER")
+```
+
+### 8 Spatially Constrained Clustering - SKATER approach
+
+Now we use spatially constrained clustering to take spatial attribute into consideration.
+
+#### 8.1 Converting into SpatialPolygonDataFrame
+
+First, we need to convert nga_wpt into SpatialPolygonsDataFrame called *nga_sp*. This is because SKATER function only support **sp** objects such as SpatialPolygonDataFrame.
+
+```{r}
+nga_sp <- as_Spatial(nga_wp)
+```
+
+#### 8.2 Computing neighbor list
+
+Next, poly2nd() of **spdep** package will be used to compute the neighbours list from polygon list.
+
+```{r}
+nga.nb <- poly2nb(nga_sp)
+summary(nga.nb)
+```
+
+These are used as the nodes for the graph representation. From the report above, we see that one region numbered 86 has no link. We also set the color to blue and specify add=TRUE to plot the network on top of the boundaries.
+
+```{r}
+plot(nga_sp, 
+     border=grey(.5))
+plot(nga.nb, 
+     coordinates(nga_sp), 
+     col="blue", 
+     add=TRUE)
+plot(nga_sp[86,],
+     border="red",
+     add=TRUE)
+```
+
+We can see from the map above, a little region in red border is at the south of the country having no neighbors.
+
+#### 8.3 Computing minimum spanning tree
+
+##### 8.3.1 Calculating edge costs
+
+Next, `nbcosts()` of **spdep** package is used to compute the cost of each edge. It is the distance between it nodes. This function compute this distance using a data.frame with observations vector in each node. But this function requires no disconnected nodes. Therefore we first extract the region having no neighbors. The code chunk below is used to compute the cost of each edge.
+
+```{r}
+nga.nb<-nga.nb[-86]
+class(nga.nb)<-"nb"
+wpt_clu0<-wpt_clu[-86,]
+lcosts <- nbcosts(nga.nb,wpt_clu)
+lcosts
+```
+
+Next, We will incorporate these costs into a weights object in the same way as we did in the calculation of inverse of distance weights. In other words, we convert the neighbour list to a list weights object by specifying the just computed ***lcosts*** as the weights. Note that we specify the *style* as **B** to make sure the cost values are not row-standardised.
+
+```{r}
+nga.w <- nb2listw(nga.nb, 
+                   lcosts, 
+                   style="B",
+                  zero.policy = TRUE)
+summary(nga.w)
+```
+
+##### 8.3.2 Computing minimum spanning tree
+
+The minimum spanning tree is computed by mean of the *mstree()* of **spdep** package as shown in the code chunk below.
+
+```{r}
+nga.mst <- mstree(nga.w)
+```
+
+After computing the MST, we can check its class and dimension by using the code chunk below.
+
+```{r}
+class(nga.mst)
+```
+
+```{r}
+dim(nga.mst)
+```
+
+Note that the dimension is 54 and not 55. This is because the minimum spanning tree consists on n-1 edges (links) in order to traverse all the nodes.
+
+The plot method for the MST include a way to show the observation numbers of the nodes in addition to the edge.
+
+```{r}
+plot(nga_sp, border=gray(.5))
+plot.mst(nga.mst, 
+         coordinates(nga_sp), 
+         col="blue", 
+         cex.lab=0.7, 
+         cex.circles=0.005, 
+         add=TRUE)
+```
+
+#### 8.4 Computing spatially constrained clusters using SKATER method
+
+The code chunk below compute the spatially constrained cluster using *skater()* of **spdep** package.
+
+```{r}
+clust6 <- skater(edges = nga.mst[,1:2], 
+                 data = wpt_clu, 
+                 method = "euclidean", 
+                 ncuts = 5)
+```
+
+We can examine the contents by using the code chunk below.
+
+```{r}
+str(clust6)
+```
+
+We can check the cluster assignment by using the code chunk below.
+
+```{r}
+ccs6 <- clust6$groups
+ccs6
+```
+
+We can find out how many observations are in each cluster by means of the table command.
+
+```{r}
+table(ccs6)
+```
+
+Lastly, we can also plot the pruned tree that shows the five clusters on top of the townshop area.
+
+```{r}
+plot(nga_sp, border=gray(.5))
+plot(clust6, 
+     coordinates(nga_sp), 
+     cex.lab=.7,
+     groups.colors=c("red","green","blue", "brown", "pink"),
+     cex.circles=0.005, 
+     add=TRUE)
+```
+
+#### 8.5 Visualising the clusters in choropleth map
+
+The code chunk below is used to plot the newly derived clusters by using SKATER method.
+
+```{r}
+groups_mat <- as.matrix(clust6$groups)
+nga_sf_spatialcluster <- cbind(nga_sf_cluster, as.factor(groups_mat)) %>%
+  rename(`SP_CLUSTER`=`as.factor.groups_mat.`)
+qtm(shan_sf_spatialcluster, "SP_CLUSTER")
+```
