@@ -913,11 +913,11 @@ In order to visualise the clusters, the *groups* object needs to be appended ont
 
 -   the *groups* list object will be converted into a matrix;
 
--   *cbind()* is used to append *groups* matrix onto *nga_wp* to produce an output simple feature object called `nga_sf_cluster`; and
+-   `cbind()` is used to append *groups* matrix onto *nga_wp* to produce an output simple feature object called `nga_sf_cluster`; and
 
--   *rename* of **dplyr** package is used to rename *as.matrix.groups* field as *CLUSTER*.
+-   `rename()` of **dplyr** package is used to rename *as.matrix.groups* field as *CLUSTER*.
 
-Before that, we create a tidier data frame named *nga_5,* which only contains 5 variables, from *nga_wp .*
+Before continuing, we create a tidier data frame named *nga_5,* which only contains 5 variables, from *nga_wp .*
 
 ```{r}
 nga_5<-nga_wp%>%
@@ -927,7 +927,7 @@ nga_sf_cluster <- cbind(nga_5, as.matrix(groups)) %>%
   rename(`CLUSTER`=`as.matrix.groups.`)
 ```
 
-Next, *qtm()* of **tmap** package is used to plot the choropleth map showing the cluster formed.
+Next, `qtm()` of ***tmap*** package is used to plot the choropleth map showing the cluster formed.
 
 ```{r}
 qtm(nga_sf_cluster, "CLUSTER")
@@ -935,7 +935,7 @@ qtm(nga_sf_cluster, "CLUSTER")
 
 ### 8 Spatially Constrained Clustering - SKATER approach
 
-Now we use spatially constrained clustering to take spatial attribute into consideration.
+Now we use spatially constrained clustering with SKATER method to take spatial attributes into consideration.
 
 #### 8.1 Converting into SpatialPolygonDataFrame
 
@@ -956,7 +956,7 @@ summary(nga.nb)
 
 These are used as the nodes for the graph representation. From the report above, we see that one region numbered **86** has no link. We also set the color to blue and specify add=TRUE to plot the network on top of the boundaries.
 
-Take a look at the file *nga_wp*, this region number 86 is named ***Bakassi***, with other attributes all 0.![](images/tempsnip-02.png)
+Take a look at the file *nga_wp*, this region number 86 is named ***Bakassi***, with other attributes all 0, meaning no water points in this region.![](images/tempsnip-02.png)
 
 ```{r}
 plot(nga_sp, 
@@ -970,41 +970,51 @@ plot(nga_sp[86,],
      add=TRUE)
 ```
 
-We can see from the map above, a little region in red border is at the south of the country having no neighbors.
+We can see from the map above that a little region in red border, which represents region number 86 named ***Bakassi,*** is at the south of the country having no neighbors.
 
 #### 8.3 Computing minimum spanning tree
 
 ##### 8.3.1 Calculating edge costs
 
-Next, `nbcosts()` of **spdep** package is used to compute the cost of each edge. It is the distance between its nodes. This function compute this distance using a data.frame with observations vector in each node. But this function requires no disconnected nodes. Therefore we first extract the region **86** having no neighbors. The code chunk below is used to compute the cost of each edge.
+Next, `nbcosts()` of **spdep** package is used to compute the cost of each edge. It is the distance between its nodes. This function compute this distance using a data.frame with observations vector in each node. But this function requires no disconnected nodes. Therefore we first extract the region **86** having no neighbors from the original sf data frame *nga_5.*
 
 ```{r}
-nga.nb0<-nga.nb[-86]
-class(nga.nb0)<-"nb"
-rownames(wpt_clu0)<-NULL
-lcosts <- nbcosts(nga.nb0,wpt_clu)
-lcosts
+nga_0<-nga_5[-86,]
+rownames(nga_0)<-NULL
+```
 
+Then we convert the sf frame into SpatialPolygonsDataFrame as clarified above.
+
+```{r}
+nga_sp <- as_Spatial(nga_0)
+```
+
+The code chunk below is used to compute the cost of each edge.
+
+```{r}
+nga.nb <- poly2nb(nga_sp)
+summary(nga.nb)
+
+lcosts <- nbcosts(nga.nb,wpt_clu)
 ```
 
 Next, We will incorporate these costs into a weights object in the same way as we did in the calculation of inverse of distance weights. In other words, we convert the neighbour list to a list weights object by specifying the just computed ***lcosts*** as the weights. Note that we specify the *style* as **B** to make sure the cost values are not row-standardised.
 
 ```{r}
-nga.w <- nb2listw(neighbours=nga.nb0, 
+nga.w <- nb2listw(neighbours=nga.nb, 
                    glist=lcosts, 
                    style="B",
                   zero.policy = TRUE)
 
 summary(nga.w)
-nga.nb0[[8]]
 ```
 
 ##### 8.3.2 Computing minimum spanning tree
 
-The minimum spanning tree is computed by mean of the *mstree()* of **spdep** package as shown in the code chunk below.
+The minimum spanning tree is computed by mean of the `mstree()` of ***spdep*** package as shown in the code chunk below.
 
 ```{r}
-nga.mst <- mstree(nga.w)
+nga.mst <- mstree(nga.w, ini = NULL)
 ```
 
 After computing the MST, we can check its class and dimension by using the code chunk below.
@@ -1017,7 +1027,11 @@ class(nga.mst)
 dim(nga.mst)
 ```
 
-Note that the dimension is 54 and not 55. This is because the minimum spanning tree consists on n-1 edges (links) in order to traverse all the nodes.
+Note that the dimension is 772 and not 773. This is because the minimum spanning tree consists on n-1 edges (links) in order to traverse all the nodes. We can check the data frame by using `head().`
+
+```{r}
+head(nga.mst)
+```
 
 The plot method for the MST include a way to show the observation numbers of the nodes in addition to the edge.
 
@@ -1033,7 +1047,7 @@ plot.mst(nga.mst,
 
 #### 8.4 Computing spatially constrained clusters using SKATER method
 
-The code chunk below compute the spatially constrained cluster using *skater()* of **spdep** package.
+The code chunk below compute the spatially constrained cluster using `skater()` of ***spdep*** package. The mandatory arguments *ncuts* is actually value of one less than the clusters, so we set it as 5 referring to the optimal 6 clusters.
 
 ```{r}
 clust6 <- skater(edges = nga.mst[,1:2], 
@@ -1055,13 +1069,13 @@ ccs6 <- clust6$groups
 ccs6
 ```
 
-We can find out how many observations are in each cluster by means of the table command.
+Noticed that all nodes are assigned into one cluster. We can find out how many observations are in each cluster by means of the table command.
 
 ```{r}
-table(ccs6)
+freq(ccs6)
 ```
 
-Lastly, we can also plot the pruned tree that shows the five clusters on top of the townshop area.
+Seen that around half water points belong to cluster 2, followed by cluster 1, 6, 3, 4 and 5. Lastly, we can also plot the pruned tree that shows the 5 clusters on top of the township area.
 
 ```{r}
 plot(nga_sp, border=gray(.5))
@@ -1079,29 +1093,42 @@ The code chunk below is used to plot the newly derived clusters by using SKATER 
 
 ```{r}
 groups_mat <- as.matrix(clust6$groups)
-nga_sf_spatialcluster <- cbind(nga_sf_cluster, as.factor(groups_mat)) %>%
+nga_sf_spatialcluster <- cbind(nga_0, as.factor(groups_mat)) %>%
   rename(`SP_CLUSTER`=`as.factor.groups_mat.`)
-qtm(shan_sf_spatialcluster, "SP_CLUSTER")
+qtm(nga_sf_spatialcluster, "SP_CLUSTER")
 ```
 
 For easy comparison, it will be better to place both the hierarchical clustering and spatially constrained hierarchical clustering maps next to each other.
 
 ```{r}
-hclust.map <- qtm(shan_sf_cluster,
+hclust.map <- qtm(nga_sf_cluster,
                   "CLUSTER") + 
-  tm_borders(alpha = 0.5) 
+  tm_borders(alpha = 0.5)+
+  tm_layout(main.title = "Hierarchical Clustering",
+            legend.outside = TRUE,
+            legend.height = 0.45, 
+            legend.width = 5.0,
+            legend.position = c("right", "bottom"),
+            frame = FALSE)
 
-shclust.map <- qtm(shan_sf_spatialcluster,
+sclust.map <- qtm(nga_sf_spatialcluster,
                    "SP_CLUSTER") + 
-  tm_borders(alpha = 0.5) 
-
-tmap_arrange(hclust.map, shclust.map,
+  tm_borders(alpha = 0.5)+
+  tm_layout(main.title = "Spatially Clustering Using SKATER",
+            legend.outside = TRUE,
+            legend.height = 0.45, 
+            legend.width = 5.0,
+            legend.position = c("right", "bottom"),
+            frame = FALSE)
+tmap_arrange(hclust.map, sclust.map,
              asp=NA, ncol=2)
 ```
 
+Noticed that spatially constrained clustering using SKATER puts heavily weights on spatial correlation. Regions in adjacent are mostly likely divided into one cluster.
+
 ### 9 Spatially Constrained Clustering: ClustGeo Method
 
-In this part we will be using functions provided by **ClustGeo** package to perform non-spatially constrained hierarchical cluster analysis and spatially constrained cluster analysis.
+Next we will be using functions provided by **ClustGeo** package to perform non-spatially constrained hierarchical cluster analysis and spatially constrained cluster analysis.
 
 #### 9.1 Ward-like hierarchical clustering: ClustGeo
 
