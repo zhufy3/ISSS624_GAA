@@ -8,11 +8,7 @@ editor: visual
 
 Notes:
 
-Other methods of agnes why are not built in the function?
-
 Use transform function to transform the crs
-
-Other methods to determining optimal clusters
 
 ## Objectives
 
@@ -64,8 +60,8 @@ pacman::p_load(rgdal, spdep, tmap, sf, readr, ggplot2, dplyr,
 
 In this exercise, two data sets will be used:
 
--   **Aspatial data:** from [WPdx Global Data Repositories](https://www.waterpointdata.org/access-data/). We will use the WPdx+ data set.
--   **Geospatial data:** Nigeria Level-2 Administrative Boundary (also known as Local Government Area) polygon features GIS data from the [Humanitarian Data Exchange](https://data.humdata.org/) portal or [geoBoundaries](https://www.geoboundaries.org/).
+-   **Aspatial data:** from WPdx Global Data Repositories. We will use the WPdx+ data set.
+-   **Geospatial data:** Nigeria Level-2 Administrative Boundary (also known as Local Government Area) polygon features GIS data from the Humanitarian Data Exchange portal or geoBoundaries.
 
 ## 3 Data Preparation
 
@@ -95,7 +91,8 @@ wp_nga$Geometry = st_as_sfc(wp_nga$`New Georeferenced Column`)
 Next, `st_sf()` will be used to convert the *tibble* data frame into *sf* data frame. In addition, we use ***Projected Coordinate System*** for convenience in our analysis, so we set the *EPSG* code as ***26391.***
 
 ```{r eval=FALSE}
-wp_sf <- st_sf(wp_nga, crs=26391) 
+wp_sf <- st_sf(wp_nga) %>%
+  st_transform(crs=26391)
 wp_sf
 ```
 
@@ -113,9 +110,9 @@ Now we import the geospatial data with the same ***Projected Coordinate System (
 
 ```{r eval=FALSE}
 nga<-st_read(dsn = "geospatial",
-             layer = "geoBoundaries-NGA-ADM2",
-             crs=26391)%>%
-  select(shapeName)
+             layer = "geoBoundaries-NGA-ADM2")%>%
+  select(shapeName)%>%
+  st_transform(crs=26391)
 ```
 
 The output reveals that we have:
@@ -662,6 +659,8 @@ From the plots above, notice that areas in the north of the country have higher 
 
 ## 6 Correlation Analysis
 
+### 6.1 Correlation Hierarchy Analysis
+
 Before we start clustering, the first thing should be checking correlation between variables. We can use *corrplot.mixed()* function of ***corrplot*** package to visualise and analyse the correlation of the input variables.
 
 ```{r}
@@ -683,9 +682,7 @@ From the proximity matrix above, noticed that percentage of **functional** water
 
 Therefore, we remove *pct_functional, pct_hand-pump,* and *pct_cap\>=1000,* which mean percentage of functional water points, percentage of water points with hand-pump, and percentage of water points with capacity more than 1000 respectively.
 
-### 7 Correlation Hierarchy Analysis
-
-#### 7.1 Extracting clustering analysis
+### 6.2 Extracting clustering analysis
 
 Before we proceed with clustering analysis, we should first extract clustering variables. As we mentioned above, we can delete any one variable which has high correlation with another variable. Now we can delete *pct_functional, pct_hand-pump,* and *pct_cap\>=1000.*
 
@@ -694,7 +691,7 @@ wpt_clu<-select(cluster_vars,c(12,14,16,17,18))
 head(wpt_clu,10)
 ```
 
-##### 7.1.1 Data standarlisation
+#### 6.2.1 Data standarlisation
 
 As shown in session 5.2 (EDA), the distribution of rural area water points is highly skewed, which may has impact on clustering analysis. For the reason that the data scale for rural area water points is already between 0-1, we use `scale`() to perform **Z-Score** standardisation to the clustering variables and review the standardised data using *`describe`*() of *psych* package.
 
@@ -704,7 +701,7 @@ wpt_clu.s<-wpt_clu%>%
 head(wpt_clu.s)
 ```
 
-##### 7.1.2 Visualising standardised variable
+#### 6.2.2 Visualising standardised variable
 
 Now let review the distribution of the standardised variable.
 
@@ -1154,7 +1151,8 @@ groups <- as.factor(cutree(nongeo_cluster, k=6))
 nga_sf_ngeo_cluster <- cbind(nga_5, as.matrix(groups)) %>%
   rename(`CLUSTER` = `as.matrix.groups.`)
 
-qtm(nga_sf_ngeo_cluster, "CLUSTER")
+qtm(nga_sf_ngeo_cluster, "CLUSTER")+
+  tm_layout(main.title = "Non-spatially Constrained Hierarchichal Clustering")
 ```
 
 #### 9.3 Spatially Constrained Hierarchical Clustering
@@ -1192,12 +1190,40 @@ nga_sf_Gcluster <- cbind(nga_5, as.matrix(groups)) %>%
   rename(`CLUSTER` = `as.matrix.groups.`)
 ```
 
-We can now plot the map of the newly delineated spatially constrained clusters.
+We can now plot the map of the newly delineated spatially constrained hierarchical clusters with the non-spatially constrained hierarchical clusters as shown below.
 
 ```{r}
-schc<-qtm(nga_sf_Gcluster, "CLUSTER", title="Chrolopeth Map Based on Spatially Constrained Hierarchical Clustering")
-hc<-qtm(nga_sf_cluster, "CLUSTER", title ="Chrolopeth Map Based on Hierarchical Clustering")
-tmap_arrange(schc,hc,
-             ncol=2,
-             nrow=1)
+schc<-qtm(nga_sf_Gcluster, "CLUSTER")+
+   tm_layout(legend.outside = TRUE,
+            legend.height = 0.45, 
+            legend.width = 5.0,
+            legend.position = c("right", "bottom"),
+            frame = FALSE, 
+            main.title="Choropleth Map of Nigeria Based on Spatially Constrained Hierarchical Clustering-ClustGeo")
+nshc<-qtm(nga_sf_ngeo_cluster, "CLUSTER")+
+   tm_layout(legend.outside = TRUE,
+            legend.height = 0.45, 
+            legend.width = 5.0,
+            legend.position = c("right", "bottom"),
+            frame = FALSE, 
+            main.title ="Choropleth Map of Nigeria Based on Non-spatially Constrained Hierarchical Clustering-ClustGeo")
+hc<-qtm(nga_sf_cluster, "CLUSTER" )+
+   tm_layout(legend.outside = TRUE,
+            legend.height = 0.45, 
+            legend.width = 5.0,
+            legend.position = c("right", "bottom"),
+            frame = FALSE,
+            main.title ="Choropleth Map of Nigeria Based on Non-spatially Constrained Hierarchical Clustering")
+
+sk<-qtm(nga_sf_spatialcluster, "SP_CLUSTER")+
+   tm_layout(legend.outside = TRUE,
+            legend.height = 0.45, 
+            legend.width = 5.0,
+            legend.position = c("right", "bottom"),
+            frame = FALSE,
+            main.title ="Choropleth Map of Nigeria Based on Non-spatially Constrained Hierarchical Clustering-SKATER")
+tmap_arrange(schc,nshc,hc,sk,
+             ncol=2)
 ```
+
+From 4 choropleth maps above, it's clear that spatially constrained clustering of SKATER method relies heaviest on neighboring weights, therefore the delineated districts are quite tidy and congregated. While spatially constrained clustering of ClustGeo method also relies on spatial correlation but no as heavily as SKATER. Clustering of hierarchical based on hclust() and hclustgeo()
