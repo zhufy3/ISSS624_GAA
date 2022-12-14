@@ -6,10 +6,6 @@ editor: visual
 
 # Take-home Exercise 2: Regionalisation of Multivariate Water Point Attributes with Non-spatially Constrained and Spatially Constrained Clustering Methods
 
-Notes:
-
-Use transform function to transform the crs
-
 ## Objectives
 
 In this take-home exercise we will regionalise Nigeria by using, but not limited to the following measures:
@@ -1226,4 +1222,4 @@ tmap_arrange(schc,nshc,hc,sk,
              ncol=2)
 ```
 
-From 4 choropleth maps above, it's clear that spatially constrained clustering of SKATER method relies heaviest on neighboring weights, therefore the delineated districts are quite tidy and congregated. While spatially constrained clustering of ClustGeo method also relies on spatial correlation but no as heavily as SKATER. Clustering of hierarchical based on hclust() and hclustgeo()
+From 4 choropleth maps above, it's clear that spatially constrained clustering of SKATER method relies heavieliest on neighboring weights, therefore the delineated districts are quite tidy and congregated. While spatially constrained clustering of ClustGeo method also relies on spatial correlation but not as heavily as SKATER. Clusterings of hierarchical based on hclust() and hclustgeo() are quite the same, both have many crossover parts espectially within cluster 1, 3, 4, 5, which have less proportions than cluster 2 and 6 across the country.

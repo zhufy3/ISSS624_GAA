@@ -30,7 +30,9 @@ website:
       - text: Take Home Exercises
         menu: 
           - text: Take Home Exercise 1
-            href: Take_home_Ex1/Take_home_Ex1.qmd
+            href: Take_home_Ex1/Take_home_Ex1.qmd 
+          - text: Take Home Exercise 2
+            href: Take_home_Ex2/Take_home_Ex2.qmd
       - text: R4DSA Exercises
         menu: 
           - text: R4DSA Exercise 1
