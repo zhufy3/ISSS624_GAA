@@ -753,7 +753,6 @@ First, we compute the proximity matrix for the clustering matrix based on Euclid
 
 ```{r}
 proxmat <- dist(wpt_clu, method = 'euclidean')
-proxmat
 ```
 
 #### 7.2 Computing hierarchical clustering
