@@ -1033,7 +1033,7 @@ plot(nga_sp, border=gray(.5))
 plot.mst(nga.mst, 
          coordinates(nga_sp), 
          col="blue", 
-         cex.lab=0.7, 
+         cex.lab=0.3, 
          cex.circles=0.005, 
          add=TRUE)
 ```
@@ -1074,7 +1074,7 @@ Seen that around half water points belong to cluster 2, followed by cluster 1, 6
 plot(nga_sp, border=gray(.5))
 plot(clust6, 
      coordinates(nga_sp), 
-     cex.lab=.7,
+     cex.lab=.3,
      groups.colors=c("red","green","blue", "brown", "pink"),
      cex.circles=0.005, 
      add=TRUE)
