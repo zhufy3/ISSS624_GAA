@@ -407,7 +407,6 @@ nga_wp <- nga_wp %>%
   mutate(`pct_pop`=`wpt pop`/`total wpt`)%>%
   mutate(`pct_localpop`=`local pop`/`total wpt`)
 
-
 ```
 
 We can quickly look at the data frame by using codes below.
@@ -702,7 +701,7 @@ As shown in session 5.2 (EDA), the distribution of rural area water points is hi
 ```{r}
 wpt_clu.s<-wpt_clu%>%
   mutate(pct_rural=exp(cluster_vars$pct_rural))
-head(wpt_clu.z)
+head(wpt_clu.s)
 ```
 
 ##### 7.1.2 Visualising standardised variable
@@ -840,7 +839,7 @@ print(gap.kmean, method = "firstmax")
 fviz_gap_stat(gap.kmean)
 ```
 
-By examine the gap statistic graph, the 7-cluster gives the largest gap statistic.
+By examine the gap statistic graph, the 7-cluster gives the largest gap statistic for kmeans method. But since we have a highly skewed variable *pct_rural,* and our data set isn't very large, we choose hierarchical analysis in our subsequent analysis.
 
 #### 7.4 Interpreting the dendrograms
 
@@ -918,8 +917,13 @@ In order to visualise the clusters, the *groups* object needs to be appended ont
 
 -   *rename* of **dplyr** package is used to rename *as.matrix.groups* field as *CLUSTER*.
 
+Before that, we create a tidier data frame named *nga_5,* which only contains 5 variables, from *nga_wp .*
+
 ```{r}
-nga_sf_cluster <- cbind(nga_wp, as.matrix(groups)) %>%
+nga_5<-nga_wp%>%
+  select(c(13,15,17,18,19),)
+
+nga_sf_cluster <- cbind(nga_5, as.matrix(groups)) %>%
   rename(`CLUSTER`=`as.matrix.groups.`)
 ```
 
@@ -935,10 +939,10 @@ Now we use spatially constrained clustering to take spatial attribute into consi
 
 #### 8.1 Converting into SpatialPolygonDataFrame
 
-First, we need to convert nga_wpt into SpatialPolygonsDataFrame called *nga_sp*. This is because SKATER function only support **sp** objects such as SpatialPolygonDataFrame.
+First, we need to convert nga_wpt into SpatialPolygonsDataFrame called *nga_sp* using code chunk below. This is because SKATER function only support **sp** objects such as SpatialPolygonDataFrame.
 
 ```{r}
-nga_sp <- as_Spatial(nga_wp)
+nga_sp <- as_Spatial(nga_5)
 ```
 
 #### 8.2 Computing neighbor list
@@ -950,7 +954,9 @@ nga.nb <- poly2nb(nga_sp)
 summary(nga.nb)
 ```
 
-These are used as the nodes for the graph representation. From the report above, we see that one region numbered 86 has no link. We also set the color to blue and specify add=TRUE to plot the network on top of the boundaries.
+These are used as the nodes for the graph representation. From the report above, we see that one region numbered **86** has no link. We also set the color to blue and specify add=TRUE to plot the network on top of the boundaries.
+
+Take a look at the file *nga_wp*, this region number 86 is named ***Bakassi***, with other attributes all 0.![](images/tempsnip-02.png)
 
 ```{r}
 plot(nga_sp, 
@@ -970,24 +976,27 @@ We can see from the map above, a little region in red border is at the south of 
 
 ##### 8.3.1 Calculating edge costs
 
-Next, `nbcosts()` of **spdep** package is used to compute the cost of each edge. It is the distance between it nodes. This function compute this distance using a data.frame with observations vector in each node. But this function requires no disconnected nodes. Therefore we first extract the region having no neighbors. The code chunk below is used to compute the cost of each edge.
+Next, `nbcosts()` of **spdep** package is used to compute the cost of each edge. It is the distance between its nodes. This function compute this distance using a data.frame with observations vector in each node. But this function requires no disconnected nodes. Therefore we first extract the region **86** having no neighbors. The code chunk below is used to compute the cost of each edge.
 
 ```{r}
-nga.nb<-nga.nb[-86]
-class(nga.nb)<-"nb"
-wpt_clu0<-wpt_clu[-86,]
-lcosts <- nbcosts(nga.nb,wpt_clu)
+nga.nb0<-nga.nb[-86]
+class(nga.nb0)<-"nb"
+rownames(wpt_clu0)<-NULL
+lcosts <- nbcosts(nga.nb0,wpt_clu)
 lcosts
+
 ```
 
 Next, We will incorporate these costs into a weights object in the same way as we did in the calculation of inverse of distance weights. In other words, we convert the neighbour list to a list weights object by specifying the just computed ***lcosts*** as the weights. Note that we specify the *style* as **B** to make sure the cost values are not row-standardised.
 
 ```{r}
-nga.w <- nb2listw(nga.nb, 
-                   lcosts, 
+nga.w <- nb2listw(neighbours=nga.nb0, 
+                   glist=lcosts, 
                    style="B",
                   zero.policy = TRUE)
+
 summary(nga.w)
+nga.nb0[[8]]
 ```
 
 ##### 8.3.2 Computing minimum spanning tree
@@ -1073,4 +1082,95 @@ groups_mat <- as.matrix(clust6$groups)
 nga_sf_spatialcluster <- cbind(nga_sf_cluster, as.factor(groups_mat)) %>%
   rename(`SP_CLUSTER`=`as.factor.groups_mat.`)
 qtm(shan_sf_spatialcluster, "SP_CLUSTER")
+```
+
+For easy comparison, it will be better to place both the hierarchical clustering and spatially constrained hierarchical clustering maps next to each other.
+
+```{r}
+hclust.map <- qtm(shan_sf_cluster,
+                  "CLUSTER") + 
+  tm_borders(alpha = 0.5) 
+
+shclust.map <- qtm(shan_sf_spatialcluster,
+                   "SP_CLUSTER") + 
+  tm_borders(alpha = 0.5) 
+
+tmap_arrange(hclust.map, shclust.map,
+             asp=NA, ncol=2)
+```
+
+### 9 Spatially Constrained Clustering: ClustGeo Method
+
+In this part we will be using functions provided by **ClustGeo** package to perform non-spatially constrained hierarchical cluster analysis and spatially constrained cluster analysis.
+
+#### 9.1 Ward-like hierarchical clustering: ClustGeo
+
+ClustGeo package provides function called `hclustgeo()` to perform a typical Ward-like hierarchical clustering like `hclust()`.
+
+To perform non-spatially constrained hierarchical clustering, we only need to provide the function a dissimilarity matrix as shown in the code chunk below.
+
+```{r}
+nongeo_cluster <- hclustgeo(proxmat)
+plot(nongeo_cluster, cex = 0.5)
+rect.hclust(nongeo_cluster, 
+            k = 6, 
+            border = 2:5)
+```
+
+#### 9.2 Mapping the clusters formed
+
+Similarly, we can plot the clusters on a categorical area shaded map.
+
+```{r}
+groups <- as.factor(cutree(nongeo_cluster, k=6))
+
+nga_sf_ngeo_cluster <- cbind(nga_5, as.matrix(groups)) %>%
+  rename(`CLUSTER` = `as.matrix.groups.`)
+
+qtm(nga_sf_ngeo_cluster, "CLUSTER")
+```
+
+#### 9.3 Spatially Constrained Hierarchical Clustering
+
+Before we can performed spatially constrained hierarchical clustering, a spatial distance matrix will be derived by using `st_distance()` of sf package.
+
+```{r}
+dist <- st_distance(nga_5, nga_5)
+distmat <- as.dist(dist)
+```
+
+Next, `choicealpha()` will be used to determine a suitable value for the mixing parameter alpha as shown in the code chunk below.
+
+```{r}
+cr <- choicealpha(proxmat, distmat, range.alpha = seq(0, 1, 0.1), K=6, graph = TRUE)
+```
+
+With reference to the graphs above, alpha = 0.4 will be used as shown in the code chunk below.
+
+```{r}
+clustG <- hclustgeo(proxmat, distmat, alpha = 0.4)
+```
+
+Next, `cutree()` is used to derive the cluster object.
+
+```{r}
+groups <- as.factor(cutree(clustG, k=6))
+groups
+```
+
+We will then join back the group list with *nga_5* polygon feature data frame by using the code chunk below.
+
+```{r}
+nga_sf_Gcluster <- cbind(nga_5, as.matrix(groups)) %>%
+  rename(`CLUSTER` = `as.matrix.groups.`)
+```
+
+We can now plot the map of the newly delineated spatially constrained clusters.
+
+```{r}
+schc<-qtm(nga_sf_Gcluster, "CLUSTER", title="Chrolopeth Map Based on Spatially Constrained Hierarchical Clustering")
+hc<-qtm(nga_sf_cluster, "CLUSTER", title ="Chrolopeth Map Based on Hierarchical Clustering")
+tmap_arrange(schc,hc,
+             ncol=2,
+             nrow=1)
 ```
