@@ -46,7 +46,7 @@ Packages below will be used in this in-class exercise:
 
 -   **cluster, ClustGeo** for cluster analysis
 
-```{r eval=FALSE}
+```{r}
 pacman::p_load(rgdal, spdep, tmap, sf, readr, ggplot2, dplyr,
                ggpubr, cluster, factoextra, NbClust,
                TSP, heatmaply, corrplot, psych, tidyverse,ClustGeo, funModeling, knitr)
@@ -894,7 +894,7 @@ From the heatmap, we can clearly see the quite distinct segmentation of clusters
 
 -   For cluster 6, it shows that water points in little proportion of areas are also with capacity mostly more than 1000, with little district population and little local (\<1 km) population, mostly in urban areas, and mostly non-functional.
 
-##### 7.5.3 Mapping the clusters formed 
+##### 7.5.3 Mapping the clusters formed
 
 With closed examination of the dendragram above, we have decided to retain **6 clusters**. `cutree()` of R Base will be used in the code chunk below to derive a 6-cluster model.
 
