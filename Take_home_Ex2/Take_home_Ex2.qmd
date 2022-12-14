@@ -318,15 +318,15 @@ Then we are supposed to extract variables we will pay attention to in this exerc
 
 -   Total number of **non-functional** water points
 
--   Total number of main water point technology (i.e. *Hand pump*)
+-   Total number of main water point technology (i.e. ***Handpump***)
 
--   Total number of usage capacity
+-   Total number of **usage** **capacity**
 
--   Total number of rural water points
+-   Total number of **rural** water points
 
--   Total number of water points at different nearby population densities
+-   Total number of water points at different **nearby population densities**
 
--   Total number of water points at different local (\<1 km) population densities
+-   Total number of water points at different **local (\<1 km) population densities**
 
 We first create a data frame for *Non-Functional water points.* For rational reasons, *Abandoned/Decommissioned* and *Abandoned* should also be considered as *Non-Functional water points,* so we put water points belong to there two definitions into Non-Functional data frame using codes below.
 
