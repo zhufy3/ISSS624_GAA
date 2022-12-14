@@ -8,7 +8,7 @@ editor: visual
 
 ## Objectives
 
-In this take-home exercise we will regionalise Nigeria by using, but not limited to the following measures:
+In this take-home exercise we will regionalise Nigeria by using the following measures:
 
 -   Total number of functional water points
 
@@ -23,6 +23,10 @@ In this take-home exercise we will regionalise Nigeria by using, but not limited
 -   Percentage of usage capacity (i.e. \< 1000, \>=1000)
 
 -   Percentage of rural water points
+
+-   Percentage of water points with different density of nearby population
+
+-   Percentage of water points with different density of local (\<1km) population
 
 ## Overview
 
@@ -94,15 +98,15 @@ wp_sf
 
 The output reveals that we have:
 
--   Simple feature collection withe 95008 features and 70 fields.
+-   Simple feature collection withe 95008 features and 70 fields;
 
--   Geometry type: POINT
+-   Geometry type: POINT;
 
--   Projected CRS: Minna / Nigeria west belt
+-   Projected CRS: Minna / Nigeria west belt.
 
 ### 3.3 Importing Nigeria LGA boundary data
 
-Now we import the geospatial data with the same ***Projected Coordinate System (EPSG code:26391)*** into the R environment, and we only use *shapeName* column because this boundary data only provides a basic map of the contry.
+Now we import the geospatial data with the same ***Projected Coordinate System (EPSG code:26391)*** into the R environment, and we only use *shapeName* column because this boundary data only provides a basic map of the country.
 
 ```{r eval=FALSE}
 nga<-st_read(dsn = "geospatial",
@@ -113,11 +117,11 @@ nga<-st_read(dsn = "geospatial",
 
 The output reveals that we have:
 
--   Simple feature collection withe 774 features and 5 fields.
+-   Simple feature collection withe 774 features and 5 fields;
 
--   Geometry type: MULTIPOLYGON
+-   Geometry type: MULTIPOLYGON;
 
--   Projected CRS: Minna / Nigeria west belt
+-   Projected CRS: Minna / Nigeria west belt.
 
 Now we can write the tidy *sf* data frame ***nga*** as a *rds* files with code chunk below.
 
@@ -135,27 +139,27 @@ Before we go ahead, we are supposed to deal with data issues first.
 
 ##### 4.1.1.1 Duplicate fields
 
-We now come to check if there are duplicate fields in the *wp_sf* data frame using code chunk below.
+We now come to check if there are duplicate columns in the *wp_sf* data frame using code chunk below.
 
 ```{r eval=FALSE}
 dup_col <- duplicated(t(wp_sf))
 colnames(wp_sf[dup_col])
 ```
 
-Noted that there are 7 duplicated columns *#clean_adm4, #rehabilitator, #fecal_coliform_presence, #scheme_id, lon_deg_original, updated_timestamp* and *Geometry*. However, taking a glimpse on the data table, these former 6 columns have duplicated columns because their values are all missed. And as shown in sippet below, we do see column *#water_tech_clean* and *#water_tech_category* are almost the same with some little differences.
+Noticed that there are 7 duplicated columns *#clean_adm4, #rehabilitator, #fecal_coliform_presence, #scheme_id, lon_deg_original, updated_timestamp* and *Geometry*. However, taking a glimpse on the data table, former 6 columns have duplicated columns because their values are all missed. And as shown in sippet below, we do see column *#water_tech_clean* and *#water_tech_category* are actually the same with some supplementary notes in column *#water_tech_clean*.
 
 ![](images/tempsnip-01.png)
 
-Therefore, we only use *#water_tech_clean* as our object of analysis because it describe observations more simplified.
+Therefore, we only use *#water_tech_clean* as our object of analysis because it describe observations more simply.
 
-We now come to check if there are duplicate features in the *wp_sf* data frame using code chunk below.
+We now check if there are duplicate rows in the *wp_sf* data frame using code chunk below.
 
 ```{r eval=FALSE}
 dup=which(duplicated(wp_sf))
 dup
 ```
 
-As the output reveals, there are no observations duplicated in *wp_sf* data frame. Then we use the same codes to check if there are duplicated features and fields in the *nga* data frame.
+As the output reveals, there are no observations duplicated in *wp_sf* data frame. Then we use the same codes to check if there are duplicated columns and rows in the *nga* data frame.
 
 ```{r eval=FALSE}
 nga<-read_rds("geodata/nga_wp.rds")
@@ -165,7 +169,7 @@ print(dup_n)
 print(dup_coln)
 ```
 
-As the output reveals, there are no duplicated features and fields in the *nga* data frame.
+As the output reveals, there are no duplicated columns or rows in the *nga* data frame.
 
 #### 4.1.2 Missing values
 
@@ -179,7 +183,7 @@ For convenience case, we first rename the columns we pay attention to in this pr
 
 -   *usage_capacity*
 
-We first rename columns *#status_clean,* *#water_tech_category* and *usage_capacity* which are untidy enough.
+We first rename columns *#status_clean,* *#water_tech_category* and *usage_capacity* which are redundant.
 
 ```{r eval=FALSE}
 wp_sf<-wp_sf%>%
@@ -262,6 +266,8 @@ wp_sf[is.na(wp_sf$locpp)==1,]%>%
   summarise(n=n())
 ```
 
+![](images/paste-6CFB6EF5.png)
+
 Noticed that water points where there are missing values for populations are either *Abandoned/Decommissioned* or *Non-Functional water points.* Therefore, we assume there are no people living where there is a missing value and recode NAs with 0 as shown below.
 
 ```{r eval=FALSE}
@@ -280,6 +286,8 @@ wp_sf%>%
   summarise(n=n())
 ```
 
+![](images/paste-02796709.png)
+
 ```{r eval=FALSE}
 wp_sf%>%
   group_by(status_cle)%>%
@@ -295,6 +303,10 @@ wp_sf%>%
   group_by(is_urban)%>%
   summarise(n=n())
 ```
+
+![](images/paste-C3A8DF7B.png){width="200"}
+
+## ![](images/paste-E7E8C147.png){width="200"}
 
 ## 5 Data Wrangling
 
@@ -312,9 +324,9 @@ Then we are supposed to extract variables we will pay attention to in this exerc
 
 -   Total number of rural water points
 
--   Total number of water points at different population densities
+-   Total number of water points at different nearby population densities
 
--   Total number of water points at different local population densities
+-   Total number of water points at different local (\<1 km) population densities
 
 We first create a data frame for *Non-Functional water points.* For rational reasons, *Abandoned/Decommissioned* and *Abandoned* should also be considered as *Non-Functional water points,* so we put water points belong to there two definitions into Non-Functional data frame using codes below.
 
@@ -328,7 +340,7 @@ wpt_nonfunctional <- wp_sf %>%
              "Non-Functional due to dry season"))
 ```
 
-We now create data frames for *Functional water points, Hand-pump water points, usage capacity \>=1000, usage capacity\<1000,* and *rural water points* using the same methods.
+We now create data frames for *Functional water points, Hand-pump water points, usage capacity \>=1000 water points, usage capacity\<1000 water points,* *rural water points,* *water points* *with dense nearby population* and *water points with dense local (\<1 km) population* using the same methods.
 
 ```{r eval=FALSE}
 wpt_functional <- wp_sf %>%
@@ -358,7 +370,7 @@ wpt_locpp<-wp_sf%>%
 
 ```
 
-Now we count the number of *Total,* *Functional water points, Non-Functional water points, Hand-pump water points, usage capacity \>=1000, usage capacity\<1000,* and *rural water points* at LGA level using *st_intersects()*.
+Now we count the number of *Total,* *Functional water points, Non-Functional water points, Hand-pump water points, usage capacity \>=1000, usage capacity\<1000, rural water points,* *water points* *with dense nearby population* and *water points with dense local (\<1 km) population* at LGA level using *st_intersects()*.
 
 ```{r eval=FALSE}
 FC<- lengths(st_intersects(nga, wpt_nonfunctional))
@@ -372,7 +384,7 @@ WP<-lengths(st_intersects(nga,wpt_wptpp))
 LP<-lengths(st_intersects(nga,wpt_locpp))
 ```
 
-We merge the count of *Total,* *Functional water points, Non-Functional water points, Hand-pump water points, usage capacity \>=1000, usage capacity\<1000,* and *rural water points* in polygons with LGA data table *nga* as *nga_wp* using codes below.
+We merge the count of *Total,* *Functional water points, Non-Functional water points, Hand-pump water points, usage capacity \>=1000, usage capacity\<1000,* *rural water points, water points* *with dense nearby population* and *water points with dense local (\<1 km) population* in polygons with LGA data table *nga* as *nga_wp* using codes below.
 
 ```{r eval=FALSE}
 nga_wp <- nga %>% 
@@ -387,7 +399,7 @@ nga_wp <- nga %>%
   mutate(`local pop`=LP)
 ```
 
-Then we calculate the percentages of numbers of *Functional water points, Non-Functional water points, Hand-pump water points, usage capacity \>=1000, usage capacity\<1000,* and *rural water points* in each polygon, and merge it with *nga_wp* data table.
+Then we calculate the percentages of numbers of *Functional water points, Non-Functional water points, Hand-pump water points, usage capacity \>=1000, usage capacity\<1000,* *rural water points, water points* *with dense nearby population* and *water points with dense local (\<1 km) population* in each polygon, and merge it with *nga_wp* data table.
 
 ```{r eval=FALSE}
 nga_wp <- nga_wp %>%
@@ -494,7 +506,7 @@ ggarrange(pct_func, pct_nonfunc, pct_hand, pct_capov, pct_capls, pct_rural, pct_
           nrow = 4)
 ```
 
-Noted that the percentage of *Hand pump water points, water points with usage capacity \>=1000, water points with usage capacity \<1000 and rural water points* are highly skewed. More specific, in ADMIN2 districts, most of them have half functional water points and non-functional water points and most of them have water points with usage capacity less than 1000. In addition, most of the water points are located in rural areas, and supported by hand pumps. The locations where population
+Noted that the percentage of *Hand pump water points, water points with usage capacity \>=1000, water points with usage capacity \<1000 and rural water points* are highly skewed. More specific, in ADMIN2 districts, most of them have half functional water points and non-functional water points and most of them have water points with usage capacity less than 1000. In addition, most of the water points are located in rural areas, supported by hand pumps and with relatively dispersed population.
 
 Now we can also check outliers of them using boxplots.
 
@@ -544,7 +556,7 @@ ggarrange(pct_func, pct_nonfunc, pct_hand, pct_capov, pct_caple, pct_rural, pct_
           nrow = 4)
 ```
 
-Noted that since we use ratio, the values are relatively congregated without outliers.
+Noticed that since we use ratios, the values are relatively congregated without outliers.
 
 ### 5.3 Choropleth map
 
@@ -651,7 +663,7 @@ tmap_arrange(pct_func.map, pct_nonfunc.map, pct_hand.map, pct_capov.map, pct_cap
           ncol = 2)
 ```
 
-From the plots above, notice that areas in the north of the country have higher rate of functional water points, therefore, most water points in the south areas are non-functional. In addition, 50% of the country is equipped with hand-pumped water, which is low mechanical. The distributions of *Hand-pumped water points* and *water points with less than 1000 usage capacity* is aligned with each other. Lastly, almost water points are located in rural areas around the country. And the districts with dense population are quite dispersed.
+From the plots above, notice that areas in the north of the country have higher rate of functional water points, therefore, most water points in the south areas are non-functional. In addition, 50% of the country is equipped with hand-pumped water, which is low-level mechanical. The distributions of *Hand-pumped water points* and *water points with less than 1000 usage capacity* is aligned with each other. Lastly, almost water points are located in rural areas around the country. And the districts with dense population are quite dispersed, mostly located in the south parts of the country.
 
 ## 6 Correlation Analysis
 
