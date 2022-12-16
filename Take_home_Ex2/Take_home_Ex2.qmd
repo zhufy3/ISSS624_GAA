@@ -6,7 +6,7 @@ execute:
   message: false
 format: 
   html:
-    page-layout: custom
+    page-layout: full
 sideNavigator: true
 editor: visual
 ---
@@ -1213,17 +1213,17 @@ schc<-qtm(nga_sf_Gcluster, "CLUSTER")+
             legend.width = 5.0,
             legend.position = c("right", "bottom"),
             frame = FALSE, 
-            main.title="Choropleth Map of Nigeria Based on Spatially Constrained Hierarchical Clustering-ClustGeo")
+            main.title="Choropleth Map of Nigeria Based on Spatially Constrained Hierarchical Clustering-ClustGeo",
+            main.title.size = 3)
 nshc<-qtm(nga_sf_ngeo_cluster, "CLUSTER")+
    tm_layout(legend.outside = TRUE,
             legend.height = 0.45, 
             legend.width = 5.0,
             legend.position = c("right", "bottom"),
             frame = FALSE, 
-            main.title ="Choropleth Map of Nigeria Based on Non-spatially Constrained Hierarchical Clustering-ClustGeo")
+            main.title ="Choropleth Map of Nigeria Based on Non-spatially Constrained Hierarchical Clustering-ClustGeo",
+            main.title.size = 3)
 
-tmap_arrange(schc, nshc,
-             ncol = 2)
 
 hc<-qtm(nga_sf_cluster, "CLUSTER" )+
    tm_layout(legend.outside = TRUE,
@@ -1231,7 +1231,8 @@ hc<-qtm(nga_sf_cluster, "CLUSTER" )+
             legend.width = 5.0,
             legend.position = c("right", "bottom"),
             frame = FALSE,
-            main.title ="Choropleth Map of Nigeria Based on Non-spatially Constrained Hierarchical Clustering")
+            main.title ="Choropleth Map of Nigeria Based on Non-spatially Constrained Hierarchical Clustering",
+            main.title.size = 3)
 
 sk<-qtm(nga_sf_spatialcluster, "SP_CLUSTER")+
    tm_layout(legend.outside = TRUE,
@@ -1239,9 +1240,10 @@ sk<-qtm(nga_sf_spatialcluster, "SP_CLUSTER")+
             legend.width = 5.0,
             legend.position = c("right", "bottom"),
             frame = FALSE,
-            main.title ="Choropleth Map of Nigeria Based on Non-spatially Constrained Hierarchical Clustering-SKATER")
+            main.title ="Choropleth Map of Nigeria Based on Non-spatially Constrained Hierarchical Clustering-SKATER",
+            main.title.size = 3)
 
-tmap_arrange(sk,hc,
+tmap_arrange(schc, nshc,hc, sk,
              ncol = 2)
 ```
 
