@@ -6,9 +6,7 @@ execute:
   message: false
 format: 
   html:
-    page-layout: full
-  
-
+    page-layout: custom
 sideNavigator: true
 editor: visual
 ---
