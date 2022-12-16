@@ -4,7 +4,11 @@ author: "ZHU Fangyuan"
 execute: 
   warning: false
   message: false
-format: html
+format: 
+  html:
+    page-layout: full
+  
+
 sideNavigator: true
 editor: visual
 ---
