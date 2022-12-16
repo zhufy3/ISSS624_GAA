@@ -4,9 +4,7 @@ author: "ZHU Fangyuan"
 execute: 
   warning: false
   message: false
-format: 
-  html:
-    page-layout: full
+format: html
 sideNavigator: true
 editor: visual
 ---
@@ -1214,7 +1212,7 @@ schc<-qtm(nga_sf_Gcluster, "CLUSTER")+
             legend.position = c("right", "bottom"),
             frame = FALSE, 
             main.title="Choropleth Map of Nigeria Based on Spatially Constrained Hierarchical Clustering-ClustGeo",
-            main.title.size = 3)
+            main.title.size = .7)
 nshc<-qtm(nga_sf_ngeo_cluster, "CLUSTER")+
    tm_layout(legend.outside = TRUE,
             legend.height = 0.45, 
@@ -1222,7 +1220,7 @@ nshc<-qtm(nga_sf_ngeo_cluster, "CLUSTER")+
             legend.position = c("right", "bottom"),
             frame = FALSE, 
             main.title ="Choropleth Map of Nigeria Based on Non-spatially Constrained Hierarchical Clustering-ClustGeo",
-            main.title.size = 3)
+            main.title.size = .7)
 
 
 hc<-qtm(nga_sf_cluster, "CLUSTER" )+
@@ -1232,7 +1230,7 @@ hc<-qtm(nga_sf_cluster, "CLUSTER" )+
             legend.position = c("right", "bottom"),
             frame = FALSE,
             main.title ="Choropleth Map of Nigeria Based on Non-spatially Constrained Hierarchical Clustering",
-            main.title.size = 3)
+            main.title.size = .7)
 
 sk<-qtm(nga_sf_spatialcluster, "SP_CLUSTER")+
    tm_layout(legend.outside = TRUE,
@@ -1241,7 +1239,7 @@ sk<-qtm(nga_sf_spatialcluster, "SP_CLUSTER")+
             legend.position = c("right", "bottom"),
             frame = FALSE,
             main.title ="Choropleth Map of Nigeria Based on Non-spatially Constrained Hierarchical Clustering-SKATER",
-            main.title.size = 3)
+            main.title.size = .7)
 
 tmap_arrange(schc, nshc,hc, sk,
              ncol = 2)
