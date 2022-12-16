@@ -33,9 +33,11 @@ In this take-home exercise we will regionalise Nigeria by using the following me
 
 -   Percentage of water points with different density of local (\<1km) population
 
+And we will apply different clustering analysis methods to delineate the country based on *ADMIN 2* level with attributes of water points shown above.
+
 ## Overview
 
-In this in-class exercise, we will learn several useful ways to deal with geospatial and aspatial data of **Nigeria** case! Let us get started now!
+In this exercise, we will use several clustering analysis ways to deal with geospatial and aspatial data of **Nigeria** case! Let us get started now!
 
 ## 1 Packages Used
 
