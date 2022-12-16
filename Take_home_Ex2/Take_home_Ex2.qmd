@@ -1211,7 +1211,7 @@ schc<-qtm(nga_sf_Gcluster, "CLUSTER")+
             legend.width = 5.0,
             legend.position = c("right", "bottom"),
             frame = FALSE, 
-            main.title="Choropleth Map of Nigeria Based on Spatially Constrained Hierarchical Clustering-ClustGeo",
+            main.title="Spatially Constrained Hierarchical Clustering-ClustGeo",
             main.title.size = .7)
 nshc<-qtm(nga_sf_ngeo_cluster, "CLUSTER")+
    tm_layout(legend.outside = TRUE,
@@ -1219,7 +1219,7 @@ nshc<-qtm(nga_sf_ngeo_cluster, "CLUSTER")+
             legend.width = 5.0,
             legend.position = c("right", "bottom"),
             frame = FALSE, 
-            main.title ="Choropleth Map of Nigeria Based on Non-spatially Constrained Hierarchical Clustering-ClustGeo",
+            main.title ="Non-spatially Constrained Hierarchical Clustering-ClustGeo",
             main.title.size = .7)
 
 
@@ -1229,7 +1229,7 @@ hc<-qtm(nga_sf_cluster, "CLUSTER" )+
             legend.width = 5.0,
             legend.position = c("right", "bottom"),
             frame = FALSE,
-            main.title ="Choropleth Map of Nigeria Based on Non-spatially Constrained Hierarchical Clustering",
+            main.title ="Non-spatially Constrained Hierarchical Clustering",
             main.title.size = .7)
 
 sk<-qtm(nga_sf_spatialcluster, "SP_CLUSTER")+
@@ -1238,7 +1238,7 @@ sk<-qtm(nga_sf_spatialcluster, "SP_CLUSTER")+
             legend.width = 5.0,
             legend.position = c("right", "bottom"),
             frame = FALSE,
-            main.title ="Choropleth Map of Nigeria Based on Non-spatially Constrained Hierarchical Clustering-SKATER",
+            main.title ="Non-spatially Constrained Hierarchical Clustering-SKATER",
             main.title.size = .7)
 
 tmap_arrange(schc, nshc,hc, sk,
