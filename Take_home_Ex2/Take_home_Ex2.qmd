@@ -342,7 +342,7 @@ wpt_nonfunctional <- wp_sf %>%
              "Non-Functional due to dry season"))
 ```
 
-We now create data frames for *Functional water points, Hand-pump water points, usage capacity \>=1000 water points, usage capacity\<1000 water points,* *rural water points,* *water points* *with dense nearby population* and *water points with dense local (\<1 km) population* using the same methods.
+We now create data frames for *Functional water points, Hand-pump water points, usage capacity \>=1000 water points, usage capacity\<1000 water points,* *rural water points,* *water points* *with dense nearby population* and *water points with dense local (\<1 km) population* using the same methods. In addition, ***dense population means*** population more than mean of the total population, and ***dispersed population means*** population less than mean of the total population.
 
 ```{r eval=FALSE}
 wpt_functional <- wp_sf %>%
@@ -964,7 +964,7 @@ These are used as the nodes for the graph representation. From the report above,
 
 Take a look at the file *nga_wp*, this region number 86 is named ***Bakassi***, with other attributes all 0, meaning no water points in this region.![](images/tempsnip-02.png)
 
-```{r}
+```{r eval=FALSE}
 plot(nga_sp, 
      border=grey(.5))
 plot(nga.nb, 
@@ -975,6 +975,8 @@ plot(nga_sp[86,],
      border="red",
      add=TRUE)
 ```
+
+![](images/000014.png)
 
 We can see from the map above that a little region in red border, which represents region number 86 named ***Bakassi,*** is at the south of the country having no neighbors.
 
@@ -1231,8 +1233,6 @@ sk<-qtm(nga_sf_spatialcluster, "SP_CLUSTER")+
             legend.position = c("right", "bottom"),
             frame = FALSE,
             main.title ="Choropleth Map of Nigeria Based on Non-spatially Constrained Hierarchical Clustering-SKATER")
-tmap_arrange(schc,nshc,hc,sk,
-             ncol=2)
 ```
 
 From 4 choropleth maps above, it's clear that spatially constrained clustering of SKATER method relies heavieliest on neighboring weights, therefore the delineated districts are quite tidy and congregated. While spatially constrained clustering of ClustGeo method also relies on spatial correlation but not as heavily as SKATER. Clusterings of hierarchical based on hclust() and hclustgeo() are quite the same, both have many crossover parts espectially within cluster 1, 3, 4, 5, which have less proportions than cluster 2 and 6 across the country.
