@@ -1,6 +1,10 @@
 ---
 title: "Take-home Exercise 2"
 author: "ZHU Fangyuan"
+execute: 
+  warning: false
+  message: false
+format: html
 editor: visual
 ---
 
@@ -136,8 +140,6 @@ write_rds(nga,"geodata/nga.rds")
 Before we go ahead, we are supposed to deal with data issues first.
 
 #### 4.1.1 Duplicate fields and features
-
-##### 4.1.1.1 Duplicate fields
 
 We now come to check if there are duplicate columns in the *wp_sf* data frame using code chunk below.
 
