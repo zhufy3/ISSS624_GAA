@@ -7,7 +7,6 @@ execute:
   message: false
 format: html
 sideNavigator: true
-editor: visual
 ---
 
 ## Objectives
@@ -278,7 +277,7 @@ gwr.fixed<-as.data.frame(gwlr.fixed$SDF)
 
 ```
 
-```{r}
+```{r eval=FALSE}
 
 gwr.fixed<-gwr.fixed%>%
   mutate(most=ifelse(
@@ -293,7 +292,7 @@ CM
 
 The code chunks below is used to create an interactive point symbol map.
 
-```{r}
+```{r eval=FALSE}
 tmap_mode("view")
 prob_T<-tm_shape(Osun)+
   tm_polygons(alpha = 0.1)+
