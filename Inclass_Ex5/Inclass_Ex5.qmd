@@ -1,9 +1,13 @@
 ---
-title: "Inclass Exercise 5"
+title: "In-class Exercise 5"
+author: "ZHU Fangyuan"
 editor: visual
 execute: 
   warning: false
   message: false
+format: html
+sideNavigator: true
+editor: visual
 ---
 
 ## Objectives
@@ -16,9 +20,6 @@ In this in-class exercise, we will use ***Logistic Regression*** (LR) and ***Geo
 
     contains LGA boundaries of Osun state; ***sf*** polygon data frame.
 
-```{=html}
-<!-- -->
-```
 -   ***Osun_wp_sf.rds:***
 
     contains water points within Osun state; ***sf*** point data frame.
@@ -85,12 +86,14 @@ pacman::p_load(sf,tidyverse,funModeling,blorr,corrplot,ggpubr,spdep,GWmodel,tmap
 
 ## Importing Data
 
-We import the data sets into R studio environment by using code chunk below.
+We import the spatial and aspatial data sets into R studio environment by using code chunk below.
 
 ```{r}
 Osun<-read_rds("rds/Osun.rds")
 Osun_wp_sf<-read_rds("rds/Osun_wp_sf.rds")
 ```
+
+## Data Wrangling and EDA
 
 Let us check the frequencies of each binary variables in water point *status* using code below.
 
@@ -99,27 +102,15 @@ Osun_wp_sf%>%
   freq(input='status')
 ```
 
-```{r eval=FALSE}
-Osun_wp_sf<-Osun_wp_sf%>%
-  mutate(`status_clean`=replace_na(`status_clean`,"Unknown"))%>%
-  filter(`status_clean`!="Unknown")%>%
-  mutate(`status`=recode(`status_clean`,
-                       "Functional"=T,
-                       "Functional but not in use"=T,
-                       "Functional but needs repair"=T,
-                       "Abandoned/Decommissioned"=F,
-                       "Abandoned"=F,
-                       "Non-Functional"=F,
-                       "Non-functional due to dry season"=F,
-                       "Non-Funcitonal due to dry season"=F))%>%
-  filter(ADM1_EN=="Osun")
-write_rds(Osun_wp_sf,"rds/Osun_wp_sf.rds")
+### Tidy up data frame
 
-Osun_wp_sf%>%
+Note that water point's clean status of *TRUE* takes 55.5% in the whole observations, while *FALSE* takes 44.4%, *NA* takes 3.17% respectively. Therefore, number of clean water points are slightly more than that of unclean water points in Osun State. Now let us recode missing value in *status_clean* in aspatial data frame with *"Unknown"* using codes below and get the description for the data frame using function *skim().*
+
+```{Osun_wp_sf%>%}
   skim()
 ```
 
-Tidy up the data using code chunk below.
+Note that within the whole 75 variables in data set Osun_wp_sf, there are 47 character type, 5 logical type and 23 numeric variables. Now let us remove observations with missing values using code chunk below.
 
 ```{r}
 Osun_wp_sf_clean<-Osun_wp_sf%>%
@@ -138,11 +129,17 @@ Osun_wp_sf_clean<-Osun_wp_sf%>%
   mutate(usage_capacity=as.factor(usage_capacity))
 ```
 
+Continuely tidy up the data frame by extracting variables used in the analysis using codes below.
+
 ```{r}
 Osun_wp<-Osun_wp_sf_clean%>%
   select(c(7,35:39,42:43,46:47,57))%>%
   st_set_geometry(NULL)
 ```
+
+### Multivariate Visualisation
+
+Before we build the model, we should check the multivariate between the independent variables. Let plot a correlation map using codes below.
 
 ```{r}
 cluster_var.cor=cor(
@@ -154,6 +151,10 @@ corrplot.mixed(cluster_var.cor,
                diag = "l",
                tl.col="black")
 ```
+
+## Linear Regression Modeling
+
+Note that all variables have relatively low correlations. Now we can build model of general linear regression using codes below.
 
 ```{r}
 model<-glm(data = Osun_wp_sf_clean,
@@ -181,11 +182,36 @@ blr_regress(model)
 report(model)
 ```
 
+Note that *distance_to_primary_road* has p-value of 0.4744 and *distance_to_secondary_road* has p-value of 0.5802, both of which are larger than **0.05**, meaning that these two variables are not statistically significant in the linear regression model. Other variables on the countray are all significant. Therefore we should remove these two variables and build models again.
+
+```{r}
+model2<-glm(data = Osun_wp_sf_clean,
+           family = binomial(link='logit'),
+           status~distance_to_city+
+             distance_to_town+
+             distance_to_tertiary_road+
+             is_urban+
+             usage_capacity+
+             water_source_clean+
+             water_point_population+
+             local_population_1km
+    )
+blr_regress(model2)
+```
+
+```{r}
+report(model2)
+```
+
+Now we can compare the *model* and *model2,* which removed insignificant variables already.
+
 ```{r}
 blr_confusion_matrix(model,cutoff = 0.5)
 ```
 
 ![](images/Capture.PNG)
+
+The reports read 0-0 = 1301, 1-1=1904 for the original model
 
 Convert the data frame into *spatial* data file.
 
@@ -250,9 +276,6 @@ Next, we will label yhat values greater or equal to 0.5 into 1 and else 0. The r
 ```{r}
 gwr.fixed<-as.data.frame(gwlr.fixed$SDF)
 
-```
-
-```{}
 ```
 
 ```{r}
