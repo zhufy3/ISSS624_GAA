@@ -1,0 +1,279 @@
+---
+title: "Inclass Exercise 5"
+editor: visual
+execute: 
+  warning: false
+  message: false
+---
+
+## Objectives
+
+In this in-class exercise, we will use ***Logistic Regression*** (LR) and ***Geographical Weighted Logistic Regression*** (GWLR) to model *clean status* of water points on *Osun* state, Nigeria level with observed variables. There are two main objectives to accomplish in this exercise:
+
+## Data Used
+
+-   ***Osun.rds:***
+
+    contains LGA boundaries of Osun state; ***sf*** polygon data frame.
+
+```{=html}
+<!-- -->
+```
+-   ***Osun_wp_sf.rds:***
+
+    contains water points within Osun state; ***sf*** point data frame.
+
+## Model Variables
+
+-   dependent variable:
+
+    -   water point status
+
+-   independent variables:
+
+    -   distance_to_primary_road
+
+    -   distance_to_secondary_road
+
+    -   distance_to_tertiary_road
+
+    -   distance_to_city
+
+    -   distance_to_town
+
+    -   water_point_population
+
+    -   local_population_1km
+
+    -   usage_capacity
+
+    -   is_urban
+
+    -   water_source_clean
+
+## Packages used
+
+Packages below will be used to facilitate the analysis.
+
+-   ***sf:*** importing and processing geospatial data
+
+-   ***tidyverse:*** importing and processing non-spatial data
+
+-   ***funModeling***
+
+-   ***blorr***
+
+-   ***corrplot:*** multivariate data visualisation
+
+-   ***ggpubr***
+
+-   ***spdep:*** spatial data han
+
+-   ***GWmodel***
+
+-   ***tmap:*** geospatial data visualisation
+
+-   ***skimr***
+
+-   ***caret***
+
+-   ***report***: a tidy report of modeling results
+
+```{r}
+pacman::p_load(sf,tidyverse,funModeling,blorr,corrplot,ggpubr,spdep,GWmodel,tmap,skimr,caret,report)
+```
+
+## Importing Data
+
+We import the data sets into R studio environment by using code chunk below.
+
+```{r}
+Osun<-read_rds("rds/Osun.rds")
+Osun_wp_sf<-read_rds("rds/Osun_wp_sf.rds")
+```
+
+Let us check the frequencies of each binary variables in water point *status* using code below.
+
+```{r}
+Osun_wp_sf%>%
+  freq(input='status')
+```
+
+```{r eval=FALSE}
+Osun_wp_sf<-Osun_wp_sf%>%
+  mutate(`status_clean`=replace_na(`status_clean`,"Unknown"))%>%
+  filter(`status_clean`!="Unknown")%>%
+  mutate(`status`=recode(`status_clean`,
+                       "Functional"=T,
+                       "Functional but not in use"=T,
+                       "Functional but needs repair"=T,
+                       "Abandoned/Decommissioned"=F,
+                       "Abandoned"=F,
+                       "Non-Functional"=F,
+                       "Non-functional due to dry season"=F,
+                       "Non-Funcitonal due to dry season"=F))%>%
+  filter(ADM1_EN=="Osun")
+write_rds(Osun_wp_sf,"rds/Osun_wp_sf.rds")
+
+Osun_wp_sf%>%
+  skim()
+```
+
+Tidy up the data using code chunk below.
+
+```{r}
+Osun_wp_sf_clean<-Osun_wp_sf%>%
+  filter_at(vars(status,
+                 distance_to_primary_road,
+                 distance_to_secondary_road,
+                 distance_to_tertiary_road,
+                 distance_to_city,
+                 distance_to_town,
+                 water_point_population,
+                 local_population_1km,
+                 usage_capacity,
+                 is_urban,
+                 water_source_clean),
+            all_vars(!is.na(.)))%>%
+  mutate(usage_capacity=as.factor(usage_capacity))
+```
+
+```{r}
+Osun_wp<-Osun_wp_sf_clean%>%
+  select(c(7,35:39,42:43,46:47,57))%>%
+  st_set_geometry(NULL)
+```
+
+```{r}
+cluster_var.cor=cor(
+  Osun_wp[,2:7])
+corrplot.mixed(cluster_var.cor,
+               lower = "ellipse",
+               upper = "number",
+               tl.pos = "lt",
+               diag = "l",
+               tl.col="black")
+```
+
+```{r}
+model<-glm(data = Osun_wp_sf_clean,
+           family = binomial(link='logit'),
+           status~distance_to_primary_road+
+             distance_to_secondary_road+
+             distance_to_city+
+             distance_to_town+
+             distance_to_tertiary_road+
+             is_urban+
+             usage_capacity+
+             water_source_clean+
+             water_point_population+
+             local_population_1km
+    )
+```
+
+Report the output.
+
+```{r}
+blr_regress(model)
+```
+
+```{r}
+report(model)
+```
+
+```{r}
+blr_confusion_matrix(model,cutoff = 0.5)
+```
+
+![](images/Capture.PNG)
+
+Convert the data frame into *spatial* data file.
+
+```{r}
+Osun_wp_sp<-Osun_wp_sf_clean%>%
+  select(c(status,
+           distance_to_city,
+           distance_to_primary_road,
+           distance_to_secondary_road,
+           distance_to_tertiary_road,
+           distance_to_town,
+           water_point_population,
+           local_population_1km,
+           is_urban,
+           usage_capacity,
+           water_source_clean))%>%
+  as_Spatial()
+
+Osun_wp_sp
+```
+
+```{r eval=FALSE}
+bw.fixed<-bw.ggwr(data = Osun_wp_sp,
+           family = "binomial",
+           status~distance_to_primary_road+
+             distance_to_secondary_road+
+             distance_to_city+
+             distance_to_town+
+             distance_to_tertiary_road+
+             is_urban+
+             usage_capacity+
+             water_source_clean+
+             water_point_population+
+             local_population_1km,
+           approach = "AIC",
+           kernel="gaussian",
+           adaptive = FALSE,
+           longlat = FALSE)
+```
+
+```{r}
+gwlr.fixed<-ggwr.basic(status~distance_to_primary_road+
+             distance_to_secondary_road+
+             distance_to_city+
+             distance_to_town+
+             distance_to_tertiary_road+
+             is_urban+
+             usage_capacity+
+             water_source_clean+
+             water_point_population+
+             local_population_1km,
+             data = Osun_wp_sp,
+             bw=2597.255,
+           family = "binomial",
+           kernel="gaussian",
+           adaptive = FALSE,
+           longlat = FALSE)
+```
+
+Next, we will label yhat values greater or equal to 0.5 into 1 and else 0. The result of the logic comparison operation will be saved into a field called *most.*
+
+```{r}
+gwr.fixed<-as.data.frame(gwlr.fixed$SDF)
+
+```
+
+```{}
+```
+
+```{r}
+
+gwr.fixed<-gwr.fixed%>%
+  mutate(most=ifelse(
+    gwr.fixed$yhat>=0.5,T,F
+  ))
+
+gwr.fixed$y<-as.factor(gwr.fixed$y)
+gwr.fixed$most<-as.factor(gwr.fixed$most)
+CM<-confusionMatrix(data = gwr.fixed$most,reference = gwr.fixed$y)
+CM 
+```
+
+The code chunks below is used to create an interactive point symbol map.
+
+```{r}
+tmap_mode("view")
+prob_T<-tm_shape(Osun)+
+  tm_polygons(alpha = 0.1)+
+  tm_shape(gwr_sf.fixed)+
+  tm_
+```
