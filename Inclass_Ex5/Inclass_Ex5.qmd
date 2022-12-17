@@ -369,9 +369,31 @@ CM.rm
 
 The reports read TN = 1833, TP=2374, accuracy rate = 0.8846. Confidence interval with 95% level is (0.8751, 0.8935).
 
-#### Model visualisation
+Below are comparison of performance of each model. Note that GWLR model with revised data has the best accuracy rate and True Negative rate.
 
-The code chunks below is used to create an interactive point symbol map.
+|                             | TN   | TP   | Accuracy Rate |
+|-----------------------------|------|------|---------------|
+| **LR** with original data   | 1301 | 1904 | 0.6739        |
+| **LR** with revised data    | 1300 | 1899 | 0.6726        |
+| **GWLR** with original data | 1824 | 2379 | 0.8837        |
+| **GWLR** with revised data  | 1833 | 2374 | 0.8846        |
+
+### 8.3 Visualising coefficient estimates
+
+The code chunks below is used to create an interactive point symbol map. First we create a base geospatial data frame *Osun_wp_sf_selected*.
+
+```{r}
+Osun_wp_sf_selected<-Osun_wp_sf_clean%>%
+  select(c(ADM2_EN, ADM2_PCODE,
+           ADM1_EN, ADM1_PCODE,
+           status))
+```
+
+Then we combine aspatial data frame with spatial data frame with codes below.
+
+```{r}
+gwr_sf.fixed<-cbind(Osun_wp_sf_selected, gwr.fixed)
+```
 
 ```{r eval=FALSE}
 tmap_mode("view")
@@ -383,11 +405,6 @@ prob_T<-tm_shape(Osun)+
           border.lwd=1)+
   tm_view(set.zoom.limits = c(8,14))
 prob_T
-
-
-tertiary_TV<-tm_shape(Osun)+tm_polygons(alpha = 0.1)+
-  tm_shape(gwr_sf.fixed)+
-tm_dots(col="distance_to_tertiary_road_TV", border.col="grey60",boder.lwd=1)+
-  tm_view(set.zoom.limits = c(8,14))
-tertiary_TV
 ```
+
+The map shows points in deeper color have higher possibility of clean water, while points in lighter color have higher possibility of unclean water. Note that water points in the north and central positions of the state have more congregated clean water points than that of other locations.
