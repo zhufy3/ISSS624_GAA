@@ -215,8 +215,6 @@ blr_confusion_matrix(model,cutoff = 0.5)
 blr_confusion_matrix(model2,cutoff = 0.5)
 ```
 
-![](images/Capture.PNG)
-
 The reports read TN = 1301, TP=1904, accuracy rate = 0.6739 for the original model; TN=1300, TP=1899, accuracy rate = 0.6726 for model2 which removed insignificant variables. Though removed tow insignificant variables, the TN and TP didn't improve significantly, but the accuracy rates are almost the same, and the complexity of LR model has been decreased.
 
 ## 8 Geographical Weighted Linear Regression Model
@@ -396,7 +394,7 @@ gwr_sf.fixed<-cbind(Osun_wp_sf_selected, gwr.fixed.rm)
 write_rds(gwr_sf.fixed,"rds/gwr_sf.fixed.rds")
 ```
 
-```{r eval=FALSE}
+```{r}
 gwr_sf.fixed<-read_rds("rds/gwr_sf.fixed.rds")
 tmap_mode("view")
 prob_T<-tm_shape(Osun)+

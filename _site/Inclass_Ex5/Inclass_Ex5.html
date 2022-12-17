@@ -252,11 +252,11 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </header>
 
 <section id="objectives" class="level2">
-<h2 class="anchored" data-anchor-id="objectives">Objectives</h2>
+<h2 class="anchored" data-anchor-id="objectives">1 Objectives</h2>
 <p>In this in-class exercise, we will use <strong><em>Logistic Regression</em></strong> (LR) and <strong><em>Geographical Weighted Logistic Regression</em></strong> (GWLR) to model <em>clean status</em> of water points on <em>Osun</em> state, Nigeria level with observed variables. There are two main objectives to accomplish in this exercise:</p>
 </section>
 <section id="data-used" class="level2">
-<h2 class="anchored" data-anchor-id="data-used">Data Used</h2>
+<h2 class="anchored" data-anchor-id="data-used">2 Data Used</h2>
 <ul>
 <li><p><strong><em>Osun.rds:</em></strong></p>
 <p>contains LGA boundaries of Osun state; <strong><em>sf</em></strong> polygon data frame.</p></li>
@@ -265,7 +265,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </ul>
 </section>
 <section id="model-variables" class="level2">
-<h2 class="anchored" data-anchor-id="model-variables">Model Variables</h2>
+<h2 class="anchored" data-anchor-id="model-variables">3 Model Variables</h2>
 <ul>
 <li><p>dependent variable:</p>
 <ul>
@@ -287,7 +287,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </ul>
 </section>
 <section id="packages-used" class="level2">
-<h2 class="anchored" data-anchor-id="packages-used">Packages used</h2>
+<h2 class="anchored" data-anchor-id="packages-used">4 Packages used</h2>
 <p>Packages below will be used to facilitate the analysis.</p>
 <ul>
 <li><p><strong><em>sf:</em></strong> importing and processing geospatial data</p></li>
@@ -308,15 +308,17 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </div>
 </section>
 <section id="importing-data" class="level2">
-<h2 class="anchored" data-anchor-id="importing-data">Importing Data</h2>
+<h2 class="anchored" data-anchor-id="importing-data">5 Importing Data</h2>
 <p>We import the spatial and aspatial data sets into R studio environment by using code chunk below.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>Osun<span class="ot">&lt;-</span><span class="fu">read_rds</span>(<span class="st">"rds/Osun.rds"</span>)</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>Osun_wp_sf<span class="ot">&lt;-</span><span class="fu">read_rds</span>(<span class="st">"rds/Osun_wp_sf.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
-<section id="data-wrangling-and-eda" class="level2">
-<h2 class="anchored" data-anchor-id="data-wrangling-and-eda">Data Wrangling and EDA</h2>
+<section id="data-preparation" class="level2">
+<h2 class="anchored" data-anchor-id="data-preparation">6 Data Preparation</h2>
+<section id="data-wrangling-and-eda" class="level3">
+<h3 class="anchored" data-anchor-id="data-wrangling-and-eda">6.1 Data Wrangling and EDA</h3>
 <p>Let us check the frequencies of each binary variables in water point <em>status</em> using code below.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>Osun_wp_sf<span class="sc">%&gt;%</span></span>
@@ -330,8 +332,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 2  FALSE      2118       44.5           100.0</code></pre>
 </div>
 </div>
+</section>
 <section id="tidy-up-data-frame" class="level3">
-<h3 class="anchored" data-anchor-id="tidy-up-data-frame">Tidy up data frame</h3>
+<h3 class="anchored" data-anchor-id="tidy-up-data-frame">6.2 Tidy up data frame</h3>
 <p>Note that water point’s clean status of <em>TRUE</em> takes 55.5% in the whole observations, while <em>FALSE</em> takes 44.4%, <em>NA</em> takes 3.17% respectively. Therefore, number of clean water points are slightly more than that of unclean water points in Osun State. Now let us recode missing value in <em>status_clean</em> in aspatial data frame with <em>“Unknown”</em> using codes below and get the description for the data frame using function <em>skim().</em></p>
 <pre class="{osun_wp_sf%>%}"><code>  skim()</code></pre>
 <p>Note that within the whole 75 variables in data set Osun_wp_sf, there are 47 character type, 5 logical type and 23 numeric variables. Now let us remove observations with missing values using code chunk below.</p>
@@ -359,7 +362,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </div>
 </section>
 <section id="multivariate-visualisation" class="level3">
-<h3 class="anchored" data-anchor-id="multivariate-visualisation">Multivariate Visualisation</h3>
+<h3 class="anchored" data-anchor-id="multivariate-visualisation">6.3 Multivariate Visualisation</h3>
 <p>Before we build the model, we should check the multivariate between the independent variables. Let plot a correlation map using codes below.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>cluster_var.cor<span class="ot">=</span><span class="fu">cor</span>(</span>
@@ -376,9 +379,11 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </div>
 </section>
 </section>
-<section id="linear-regression-modeling" class="level2">
-<h2 class="anchored" data-anchor-id="linear-regression-modeling">Linear Regression Modeling</h2>
-<p>Note that all variables have relatively low correlations. Now we can build model of general linear regression using codes below.</p>
+<section id="logistic-regression-modeling" class="level2">
+<h2 class="anchored" data-anchor-id="logistic-regression-modeling">7 Logistic Regression Modeling</h2>
+<section id="model-with-original-data" class="level3">
+<h3 class="anchored" data-anchor-id="model-with-original-data">7.1 Model with original data</h3>
+<p>Note that all variables have relatively low correlations. Now we can build model of general logistic regression using codes below.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>model<span class="ot">&lt;-</span><span class="fu">glm</span>(<span class="at">data =</span> Osun_wp_sf_clean,</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>           <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link=</span><span class="st">'logit'</span>),</span>
@@ -895,6 +900,9 @@ version of the dataset. 95% Confidence Intervals (CIs) and p-values were
 computed using a Wald z-distribution approximation.</code></pre>
 </div>
 </div>
+</section>
+<section id="model-with-revised-data" class="level3">
+<h3 class="anchored" data-anchor-id="model-with-revised-data">7.2 Model with revised data</h3>
 <p>Note that <em>distance_to_primary_road</em> has p-value of 0.4744 and <em>distance_to_secondary_road</em> has p-value of 0.5802, both of which are larger than <strong>0.05</strong>, meaning that these two variables are not statistically significant in the linear regression model. Other variables on the countray are all significant. Therefore we should remove these two variables and build models again.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>model2<span class="ot">&lt;-</span><span class="fu">glm</span>(<span class="at">data =</span> Osun_wp_sf_clean,</span>
@@ -1291,26 +1299,63 @@ McNemars's Test P-Value  : 0.0602
 
         'Positive' Class : 1</code></pre>
 </div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">blr_confusion_matrix</span>(model2,<span class="at">cutoff =</span> <span class="fl">0.5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Confusion Matrix and Statistics 
+
+          Reference
+Prediction FALSE TRUE
+         0  1300  743
+         1   814 1899
+
+                Accuracy : 0.6726 
+     No Information Rate : 0.4445 
+
+                   Kappa : 0.3348 
+
+McNemars's Test P-Value  : 0.0761 
+
+             Sensitivity : 0.7188 
+             Specificity : 0.6149 
+          Pos Pred Value : 0.7000 
+          Neg Pred Value : 0.6363 
+              Prevalence : 0.5555 
+          Detection Rate : 0.3993 
+    Detection Prevalence : 0.5704 
+       Balanced Accuracy : 0.6669 
+               Precision : 0.7000 
+                  Recall : 0.7188 
+
+        'Positive' Class : 1</code></pre>
+</div>
 </div>
 <p><img src="images/Capture.PNG" class="img-fluid"></p>
-<p>The reports read 0-0 = 1301, 1-1=1904 for the original model</p>
-<p>Convert the data frame into <em>spatial</em> data file.</p>
+<p>The reports read TN = 1301, TP=1904, accuracy rate = 0.6739 for the original model; TN=1300, TP=1899, accuracy rate = 0.6726 for model2 which removed insignificant variables. Though removed tow insignificant variables, the TN and TP didn’t improve significantly, but the accuracy rates are almost the same, and the complexity of LR model has been decreased.</p>
+</section>
+</section>
+<section id="geographical-weighted-linear-regression-model" class="level2">
+<h2 class="anchored" data-anchor-id="geographical-weighted-linear-regression-model">8 Geographical Weighted Linear Regression Model</h2>
+<section id="model-with-original-data-1" class="level3">
+<h3 class="anchored" data-anchor-id="model-with-original-data-1">8.1 Model with original data</h3>
+<section id="converting-data-frame-into-spatial-data-frame" class="level4">
+<h4 class="anchored" data-anchor-id="converting-data-frame-into-spatial-data-frame">8.1.1 Converting data frame into spatial data frame</h4>
+<p>To build GWLR model, we should first convert the data frame into <em>spatial</em> data file to fit the function.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>Osun_wp_sp<span class="ot">&lt;-</span>Osun_wp_sf_clean<span class="sc">%&gt;%</span></span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="fu">c</span>(status,</span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>           distance_to_city,</span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>           distance_to_primary_road,</span>
-<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>           distance_to_secondary_road,</span>
-<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>           distance_to_tertiary_road,</span>
-<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>           distance_to_town,</span>
-<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>           water_point_population,</span>
-<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>           local_population_1km,</span>
-<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>           is_urban,</span>
-<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>           usage_capacity,</span>
-<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>           water_source_clean))<span class="sc">%&gt;%</span></span>
-<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_Spatial</span>()</span>
-<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>Osun_wp_sp</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>Osun_wp_sp<span class="ot">&lt;-</span>Osun_wp_sf_clean<span class="sc">%&gt;%</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="fu">c</span>(status,</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>           distance_to_city,</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>           distance_to_primary_road,</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>           distance_to_secondary_road,</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>           distance_to_tertiary_road,</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>           distance_to_town,</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>           water_point_population,</span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>           local_population_1km,</span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>           is_urban,</span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>           usage_capacity,</span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>           water_source_clean))<span class="sc">%&gt;%</span></span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_Spatial</span>()</span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>Osun_wp_sp</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>class       : SpatialPointsDataFrame 
 features    : 4756 
@@ -1322,77 +1367,188 @@ min values  :      0, 53.0461399623541,        0.014461356813335,          0.152
 max values  :      1,  47934.343603562,         26909.8616132094,           19559.4793799085,          10966.2705628969, 44020.6393368124,                  29697,                36118,        1,            300,   Protected Spring </code></pre>
 </div>
 </div>
+</section>
+<section id="building-fixed-bandwidth-gwr-model" class="level4">
+<h4 class="anchored" data-anchor-id="building-fixed-bandwidth-gwr-model">8.1.2 Building fixed bandwidth GWR model</h4>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>bw.fixed<span class="ot">&lt;-</span><span class="fu">bw.ggwr</span>(<span class="at">data =</span> Osun_wp_sp,</span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>           <span class="at">family =</span> <span class="st">"binomial"</span>,</span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>           status<span class="sc">~</span>distance_to_primary_road<span class="sc">+</span></span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>             distance_to_secondary_road<span class="sc">+</span></span>
-<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>             distance_to_city<span class="sc">+</span></span>
-<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>             distance_to_town<span class="sc">+</span></span>
-<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>             distance_to_tertiary_road<span class="sc">+</span></span>
-<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>             is_urban<span class="sc">+</span></span>
-<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>             usage_capacity<span class="sc">+</span></span>
-<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>             water_source_clean<span class="sc">+</span></span>
-<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>             water_point_population<span class="sc">+</span></span>
-<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>             local_population_1km,</span>
-<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>           <span class="at">approach =</span> <span class="st">"AIC"</span>,</span>
-<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>           <span class="at">kernel=</span><span class="st">"gaussian"</span>,</span>
-<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>           <span class="at">adaptive =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>           <span class="at">longlat =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>bw.fixed<span class="ot">&lt;-</span><span class="fu">bw.ggwr</span>(<span class="at">data =</span> Osun_wp_sp,</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>           <span class="at">family =</span> <span class="st">"binomial"</span>,</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>           status<span class="sc">~</span>distance_to_primary_road<span class="sc">+</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>             distance_to_secondary_road<span class="sc">+</span></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>             distance_to_city<span class="sc">+</span></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>             distance_to_town<span class="sc">+</span></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>             distance_to_tertiary_road<span class="sc">+</span></span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>             is_urban<span class="sc">+</span></span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>             usage_capacity<span class="sc">+</span></span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>             water_source_clean<span class="sc">+</span></span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>             water_point_population<span class="sc">+</span></span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>             local_population_1km,</span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a>           <span class="at">approach =</span> <span class="st">"AIC"</span>,</span>
+<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a>           <span class="at">kernel=</span><span class="st">"gaussian"</span>,</span>
+<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a>           <span class="at">adaptive =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a>           <span class="at">longlat =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>We get the bandwidth of 2597.255. Then we input the bandwidth into GWLR model.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>gwlr.fixed<span class="ot">&lt;-</span><span class="fu">ggwr.basic</span>(status<span class="sc">~</span>distance_to_primary_road<span class="sc">+</span></span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>             distance_to_secondary_road<span class="sc">+</span></span>
-<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>             distance_to_city<span class="sc">+</span></span>
-<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>             distance_to_town<span class="sc">+</span></span>
-<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>             distance_to_tertiary_road<span class="sc">+</span></span>
-<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>             is_urban<span class="sc">+</span></span>
-<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>             usage_capacity<span class="sc">+</span></span>
-<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>             water_source_clean<span class="sc">+</span></span>
-<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>             water_point_population<span class="sc">+</span></span>
-<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>             local_population_1km,</span>
-<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>             <span class="at">data =</span> Osun_wp_sp,</span>
-<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>             <span class="at">bw=</span><span class="fl">2597.255</span>,</span>
-<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a>           <span class="at">family =</span> <span class="st">"binomial"</span>,</span>
-<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a>           <span class="at">kernel=</span><span class="st">"gaussian"</span>,</span>
-<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a>           <span class="at">adaptive =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a>           <span class="at">longlat =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code> Iteration    Log-Likelihood
-=========================
-       0        -1957 
-       1        -1675 
-       2        -1525 
-       3        -1441 
-       4        -1403 
-       5        -1403 </code></pre>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>gwlr.fixed<span class="ot">&lt;-</span><span class="fu">ggwr.basic</span>(status<span class="sc">~</span>distance_to_primary_road<span class="sc">+</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>             distance_to_secondary_road<span class="sc">+</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>             distance_to_city<span class="sc">+</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>             distance_to_town<span class="sc">+</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>             distance_to_tertiary_road<span class="sc">+</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>             is_urban<span class="sc">+</span></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>             usage_capacity<span class="sc">+</span></span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>             water_source_clean<span class="sc">+</span></span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>             water_point_population<span class="sc">+</span></span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>             local_population_1km,</span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>             <span class="at">data =</span> Osun_wp_sp,</span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>             <span class="at">bw=</span>bw.fixed,</span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a>           <span class="at">family =</span> <span class="st">"binomial"</span>,</span>
+<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a>           <span class="at">kernel=</span><span class="st">"gaussian"</span>,</span>
+<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a>           <span class="at">adaptive =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a>           <span class="at">longlat =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+</section>
+<section id="converting-sdf-into-sf-data-frame" class="level4">
+<h4 class="anchored" data-anchor-id="converting-sdf-into-sf-data-frame">8.1.3 Converting SDF into sf data frame</h4>
+<p>To assess the performance of the GWLR, firstly we will convert the SDF object in as data frame by using the code chunk below.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>gwr.fixed<span class="ot">&lt;-</span><span class="fu">as.data.frame</span>(gwlr.fixed<span class="sc">$</span>SDF)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Next, we will label yhat values greater or equal to 0.5 into 1 and else 0. The result of the logic comparison operation will be saved into a field called <em>most.</em></p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>gwr.fixed<span class="ot">&lt;-</span><span class="fu">as.data.frame</span>(gwlr.fixed<span class="sc">$</span>SDF)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>gwr.fixed<span class="ot">&lt;-</span>gwr.fixed<span class="sc">%&gt;%</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">most=</span><span class="fu">ifelse</span>(</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>    gwr.fixed<span class="sc">$</span>yhat<span class="sc">&gt;=</span><span class="fl">0.5</span>,T,F</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>  ))</span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>gwr.fixed<span class="sc">$</span>y<span class="ot">&lt;-</span><span class="fu">as.factor</span>(gwr.fixed<span class="sc">$</span>y)</span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>gwr.fixed<span class="sc">$</span>most<span class="ot">&lt;-</span><span class="fu">as.factor</span>(gwr.fixed<span class="sc">$</span>most)</span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>CM<span class="ot">&lt;-</span><span class="fu">confusionMatrix</span>(<span class="at">data =</span> gwr.fixed<span class="sc">$</span>most,<span class="at">reference =</span> gwr.fixed<span class="sc">$</span>y)</span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>CM </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>The reports read TN = 1824, TP=2379, accuracy rate = 0.8837. Confidence interval with 95% level is (0.8743, 0.8927).</p>
+</section>
+</section>
+<section id="model-with-revised-data-1" class="level3">
+<h3 class="anchored" data-anchor-id="model-with-revised-data-1">8.2 Model with revised data</h3>
+<p>Next we build GWLR model with removed insignificant variables.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>bw.fixed.rm<span class="ot">&lt;-</span><span class="fu">bw.ggwr</span>(<span class="at">data =</span> Osun_wp_sp,</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>           <span class="at">family =</span> <span class="st">"binomial"</span>,</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>           status<span class="sc">~</span></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>             distance_to_city<span class="sc">+</span></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>             distance_to_town<span class="sc">+</span></span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>             distance_to_tertiary_road<span class="sc">+</span></span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>             is_urban<span class="sc">+</span></span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>             usage_capacity<span class="sc">+</span></span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>             water_source_clean<span class="sc">+</span></span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>             water_point_population<span class="sc">+</span></span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>             local_population_1km,</span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a>           <span class="at">approach =</span> <span class="st">"AIC"</span>,</span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a>           <span class="at">kernel=</span><span class="st">"gaussian"</span>,</span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a>           <span class="at">adaptive =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a>           <span class="at">longlat =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>gwr.fixed<span class="ot">&lt;-</span>gwr.fixed<span class="sc">%&gt;%</span></span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">most=</span><span class="fu">ifelse</span>(</span>
-<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>    gwr.fixed<span class="sc">$</span>yhat<span class="sc">&gt;=</span><span class="fl">0.5</span>,T,F</span>
-<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>  ))</span>
-<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>gwr.fixed<span class="sc">$</span>y<span class="ot">&lt;-</span><span class="fu">as.factor</span>(gwr.fixed<span class="sc">$</span>y)</span>
-<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>gwr.fixed<span class="sc">$</span>most<span class="ot">&lt;-</span><span class="fu">as.factor</span>(gwr.fixed<span class="sc">$</span>most)</span>
-<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>CM<span class="ot">&lt;-</span><span class="fu">confusionMatrix</span>(<span class="at">data =</span> gwr.fixed<span class="sc">$</span>most,<span class="at">reference =</span> gwr.fixed<span class="sc">$</span>y)</span>
-<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>CM </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>gwlr.fixed.rm<span class="ot">&lt;-</span><span class="fu">ggwr.basic</span>(status<span class="sc">~</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>             distance_to_city<span class="sc">+</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>             distance_to_town<span class="sc">+</span></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>             distance_to_tertiary_road<span class="sc">+</span></span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>             is_urban<span class="sc">+</span></span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>             usage_capacity<span class="sc">+</span></span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>             water_source_clean<span class="sc">+</span></span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>             water_point_population<span class="sc">+</span></span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>             local_population_1km,</span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>             <span class="at">data =</span> Osun_wp_sp,</span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>             <span class="at">bw=</span>bw.fixed.rm,</span>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a>           <span class="at">family =</span> <span class="st">"binomial"</span>,</span>
+<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a>           <span class="at">kernel=</span><span class="st">"gaussian"</span>,</span>
+<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a>           <span class="at">adaptive =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb29-15"><a href="#cb29-15" aria-hidden="true" tabindex="-1"></a>           <span class="at">longlat =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>The code chunks below is used to create an interactive point symbol map.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_mode</span>(<span class="st">"view"</span>)</span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>prob_T<span class="ot">&lt;-</span><span class="fu">tm_shape</span>(Osun)<span class="sc">+</span></span>
-<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_polygons</span>(<span class="at">alpha =</span> <span class="fl">0.1</span>)<span class="sc">+</span></span>
-<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_shape</span>(gwr_sf.fixed)<span class="sc">+</span></span>
-<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>  tm_</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>gwr.fixed.rm<span class="ot">&lt;-</span><span class="fu">as.data.frame</span>(gwlr.fixed.rm<span class="sc">$</span>SDF)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>gwr.fixed.rm<span class="ot">&lt;-</span>gwr.fixed.rm<span class="sc">%&gt;%</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">most=</span><span class="fu">ifelse</span>(</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>    gwr.fixed.rm<span class="sc">$</span>yhat<span class="sc">&gt;=</span><span class="fl">0.5</span>,T,F</span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>  ))</span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>gwr.fixed.rm<span class="sc">$</span>y<span class="ot">&lt;-</span><span class="fu">as.factor</span>(gwr.fixed.rm<span class="sc">$</span>y)</span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>gwr.fixed.rm<span class="sc">$</span>most<span class="ot">&lt;-</span><span class="fu">as.factor</span>(gwr.fixed.rm<span class="sc">$</span>most)</span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>CM.rm<span class="ot">&lt;-</span><span class="fu">confusionMatrix</span>(<span class="at">data =</span> gwr.fixed.rm<span class="sc">$</span>most,<span class="at">reference =</span> gwr.fixed.rm<span class="sc">$</span>y)</span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>CM.rm</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>The reports read TN = 1833, TP=2374, accuracy rate = 0.8846. Confidence interval with 95% level is (0.8751, 0.8935).</p>
+<p>Below are comparison of performance of each model. Note that GWLR model with revised data has the best accuracy rate and True Negative rate.</p>
+<table class="table">
+<thead>
+<tr class="header">
+<th></th>
+<th>TN</th>
+<th>TP</th>
+<th>Accuracy Rate</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>LR</strong> with original data</td>
+<td>1301</td>
+<td>1904</td>
+<td>0.6739</td>
+</tr>
+<tr class="even">
+<td><strong>LR</strong> with revised data</td>
+<td>1300</td>
+<td>1899</td>
+<td>0.6726</td>
+</tr>
+<tr class="odd">
+<td><strong>GWLR</strong> with original data</td>
+<td>1824</td>
+<td>2379</td>
+<td>0.8837</td>
+</tr>
+<tr class="even">
+<td><strong>GWLR</strong> with revised data</td>
+<td>1833</td>
+<td>2374</td>
+<td>0.8846</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="visualising-coefficient-estimates" class="level3">
+<h3 class="anchored" data-anchor-id="visualising-coefficient-estimates">8.3 Visualising coefficient estimates</h3>
+<p>The code chunks below is used to create an interactive point symbol map. First we create a base geospatial data frame <em>Osun_wp_sf_selected</em>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>Osun_wp_sf_selected<span class="ot">&lt;-</span>Osun_wp_sf_clean<span class="sc">%&gt;%</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="fu">c</span>(ADM2_EN, ADM2_PCODE,</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>           ADM1_EN, ADM1_PCODE,</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>           status))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Then we combine aspatial data frame with spatial data frame with codes below.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>gwr_sf.fixed<span class="ot">&lt;-</span><span class="fu">cbind</span>(Osun_wp_sf_selected, gwr.fixed.rm)</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="fu">write_rds</span>(gwr_sf.fixed,<span class="st">"rds/gwr_sf.fixed.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>gwr_sf.fixed<span class="ot">&lt;-</span><span class="fu">read_rds</span>(<span class="st">"rds/gwr_sf.fixed.rds"</span>)</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_mode</span>(<span class="st">"view"</span>)</span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>prob_T<span class="ot">&lt;-</span><span class="fu">tm_shape</span>(Osun)<span class="sc">+</span></span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_polygons</span>(<span class="at">alpha =</span> <span class="fl">0.1</span>)<span class="sc">+</span></span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_shape</span>(gwr_sf.fixed)<span class="sc">+</span></span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_dots</span>(<span class="at">col =</span> <span class="st">"yhat"</span>,</span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a>          <span class="at">border.col=</span><span class="st">"gray60"</span>,</span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a>          <span class="at">border.lwd=</span><span class="dv">1</span>)<span class="sc">+</span></span>
+<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_view</span>(<span class="at">set.zoom.limits =</span> <span class="fu">c</span>(<span class="dv">8</span>,<span class="dv">14</span>))</span>
+<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a>prob_T</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>The map shows points in deeper color have higher possibility of clean water, while points in lighter color have higher possibility of unclean water. Note that water points in central positions of the state have more congregated clean water points than that of other locations.</p>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->
