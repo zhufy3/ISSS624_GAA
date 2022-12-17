@@ -11,7 +11,7 @@ sideNavigator: true
 
 ## 1 Objectives
 
-In this in-class exercise, we will use ***Logistic Regression*** (LR) and ***Geographical Weighted Logistic Regression*** (GWLR) to model *clean status* of water points on *Osun* state, Nigeria level with observed variables. There are two main objectives to accomplish in this exercise:
+In this in-class exercise, we will use ***Logistic Regression*** (LR) and ***Geographical Weighted Logistic Regression*** (GWLR) to model *clean status* of water points on *Osun* state, Nigeria level with observed variables.
 
 ## 2 Data Used
 
