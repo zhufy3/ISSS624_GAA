@@ -291,13 +291,13 @@ gwlr.fixed<-ggwr.basic(status~distance_to_primary_road+
 
 To assess the performance of the GWLR, firstly we will convert the SDF object in as data frame by using the code chunk below.
 
-```{r}
+```{r eval=FALSE}
 gwr.fixed<-as.data.frame(gwlr.fixed$SDF)
 ```
 
 Next, we will label yhat values greater or equal to 0.5 into 1 and else 0. The result of the logic comparison operation will be saved into a field called *most.*
 
-```{r}
+```{r eval=FALSE}
 gwr.fixed<-gwr.fixed%>%
   mutate(most=ifelse(
     gwr.fixed$yhat>=0.5,T,F
@@ -351,11 +351,11 @@ gwlr.fixed.rm<-ggwr.basic(status~
            longlat = FALSE)
 ```
 
-```{r}
+```{r eval=FALSE}
 gwr.fixed.rm<-as.data.frame(gwlr.fixed.rm$SDF)
 ```
 
-```{r}
+```{r eval=FALSE}
 gwr.fixed.rm<-gwr.fixed.rm%>%
   mutate(most=ifelse(
     gwr.fixed.rm$yhat>=0.5,T,F
@@ -391,11 +391,13 @@ Osun_wp_sf_selected<-Osun_wp_sf_clean%>%
 
 Then we combine aspatial data frame with spatial data frame with codes below.
 
-```{r}
-gwr_sf.fixed<-cbind(Osun_wp_sf_selected, gwr.fixed)
+```{r eval=FALSE}
+gwr_sf.fixed<-cbind(Osun_wp_sf_selected, gwr.fixed.rm)
+write_rds(gwr_sf.fixed,"rds/gwr_sf.fixed.rds")
 ```
 
 ```{r eval=FALSE}
+gwr_sf.fixed<-read_rds("rds/gwr_sf.fixed.rds")
 tmap_mode("view")
 prob_T<-tm_shape(Osun)+
   tm_polygons(alpha = 0.1)+
@@ -407,4 +409,4 @@ prob_T<-tm_shape(Osun)+
 prob_T
 ```
 
-The map shows points in deeper color have higher possibility of clean water, while points in lighter color have higher possibility of unclean water. Note that water points in the north and central positions of the state have more congregated clean water points than that of other locations.
+The map shows points in deeper color have higher possibility of clean water, while points in lighter color have higher possibility of unclean water. Note that water points in central positions of the state have more congregated clean water points than that of other locations.
