@@ -99,12 +99,14 @@ Osun_wp_sf<-read_rds("rds/Osun_wp_sf.rds")
 
 Let us check the frequencies of each binary variables in water point *status* using code below.
 
-```{r}
+```{r eval=FALSE}
 Osun_wp_sf%>%
   freq(input='status')
 ```
 
-Note that water point's clean status of *TRUE* takes 55.5% in the whole observations, while *FALSE* takes 44.4%, *NA* takes 3.17% respectively. Therefore, number of clean water points are slightly more than that of unclean water points in Osun State.
+![](images/paste-0A353B6C.png)
+
+Note that water point's clean status of *TRUE* takes 55.5% in the whole observations, while *FALSE* takes 41.32%, *NA* takes 3.17% respectively. Therefore, number of clean water points are slightly more than that of unclean water points in Osun State.
 
 ### 6.2 Tidy up data frame
 
