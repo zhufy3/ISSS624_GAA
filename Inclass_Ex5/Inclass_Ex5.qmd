@@ -104,15 +104,11 @@ Osun_wp_sf%>%
   freq(input='status')
 ```
 
+Note that water point's clean status of *TRUE* takes 55.5% in the whole observations, while *FALSE* takes 44.4%, *NA* takes 3.17% respectively. Therefore, number of clean water points are slightly more than that of unclean water points in Osun State.
+
 ### 6.2 Tidy up data frame
 
-Note that water point's clean status of *TRUE* takes 55.5% in the whole observations, while *FALSE* takes 44.4%, *NA* takes 3.17% respectively. Therefore, number of clean water points are slightly more than that of unclean water points in Osun State. Now let us recode missing value in *status_clean* in aspatial data frame with *"Unknown"* using codes below and get the description for the data frame using function *skim().*
-
-```{Osun_wp_sf%>%}
-  skim()
-```
-
-Note that within the whole 75 variables in data set Osun_wp_sf, there are 47 character type, 5 logical type and 23 numeric variables. Now let us remove observations with missing values using code chunk below.
+Now let us recode missing value in *status_clean* in aspatial data frame with *"Unknown"* using codes below and get the description for the data frame using function *skim()* and let us remove observations with missing values using code chunk below.
 
 ```{r}
 Osun_wp_sf_clean<-Osun_wp_sf%>%
@@ -131,7 +127,7 @@ Osun_wp_sf_clean<-Osun_wp_sf%>%
   mutate(usage_capacity=as.factor(usage_capacity))
 ```
 
-Continuely tidy up the data frame by extracting variables used in the analysis using codes below.
+Note that within the whole 75 variables in data set Osun_wp_sf, there are 47 character type, 5 logical type and 23 numeric variables. Continue to tidy up the data frame by extracting variables used in the analysis using codes below.
 
 ```{r}
 Osun_wp<-Osun_wp_sf_clean%>%
@@ -141,7 +137,7 @@ Osun_wp<-Osun_wp_sf_clean%>%
 
 ### 6.3 Multivariate Visualisation
 
-Before we build the model, we should check the multivariate between the independent variables. Let plot a correlation map using codes below.
+Before we build the model, we should check the multivariate between the independent variables. Let's plot a correlation map using codes below.
 
 ```{r}
 cluster_var.cor=cor(
@@ -154,11 +150,13 @@ corrplot.mixed(cluster_var.cor,
                tl.col="black")
 ```
 
+Note that all variables have relatively low correlations.
+
 ## 7 Logistic Regression Modeling
 
 ### 7.1 Model with original data
 
-Note that all variables have relatively low correlations. Now we can build model of general logistic regression using codes below.
+Now we can build model of general logistic regression using codes below.
 
 ```{r}
 model<-glm(data = Osun_wp_sf_clean,
@@ -188,7 +186,7 @@ report(model)
 
 ### 7.2 Model with revised data
 
-Note that *distance_to_primary_road* has p-value of 0.4744 and *distance_to_secondary_road* has p-value of 0.5802, both of which are larger than **0.05**, meaning that these two variables are not statistically significant in the linear regression model. Other variables on the countray are all significant. Therefore we should remove these two variables and build models again.
+Note that *distance_to_primary_road* has p-value of 0.4744 and *distance_to_secondary_road* has p-value of 0.5802, both of which are larger than **0.05**, meaning that these two variables are not statistically significant in the linear regression model. Other variables on the contray are all significant. Therefore we should remove these two variables and build models again.
 
 ```{r}
 model2<-glm(data = Osun_wp_sf_clean,
@@ -388,7 +386,7 @@ Osun_wp_sf_selected<-Osun_wp_sf_clean%>%
            status))
 ```
 
-Then we combine aspatial data frame with spatial data frame with codes below.
+Then we combine the aspatial data frame with spatial data frame with codes below.
 
 ```{r eval=FALSE}
 gwr_sf.fixed<-cbind(Osun_wp_sf_selected, gwr.fixed.rm)
